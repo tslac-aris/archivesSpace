@@ -4567,6 +4567,7 @@ def processor(my_input_file=str, singularization_dict=dict, translation_dict=dic
         if len(children) > 1:
             print("more children than I know what to do with")
             controlaccess = root.find(".//ead:controlaccess", namespaces=nsmap)
+            more_control = root.find(".//ead:controlaccess/ead:controlaccess", namespaces=nsmap)
             fams = 0
             peeps = 0
             corps = 0
@@ -4578,18 +4579,21 @@ def processor(my_input_file=str, singularization_dict=dict, translation_dict=dic
                 if "persname" in child.tag:
                     peeps += 1
                 child.attrib['encodinganalog'] = f"7{child.attrib['encodinganalog'][1:]}"
-            if fams > 0:
-                families = ET.SubElement(controlaccess, "controlaccess")
-                fam_head = ET.SubElement(families, "head")
-                fam_head.text = "Family Names"
             if peeps > 0:
                 peoples = ET.SubElement(controlaccess, "controlaccess")
                 peep_head = ET.SubElement(peoples, "head")
                 peep_head.text = "Personal Names"
+                more_control.addprevious(peoples)
+            if fams > 0:
+                families = ET.SubElement(controlaccess, "controlaccess")
+                fam_head = ET.SubElement(families, "head")
+                fam_head.text = "Family Names"
+                more_control.addprevious(families)
             if corps > 0:
                 corporate = ET.SubElement(controlaccess, "controlaccess")
                 corporate_ceo = ET.SubElement(corporate, "head")
                 corporate_ceo.text = "Corporate Names"
+                more_control.addprevious(corporate)
             for child in children[1:]:
                 window['-OUTPUT-'].update(f"moving {child.text} to subject terms\n", append=True)
                 if "corpname" in child.tag:
@@ -4954,7 +4958,7 @@ def processor(my_input_file=str, singularization_dict=dict, translation_dict=dic
                     # default remove a certain extent attribute with a specific weird value
                     for phys in physdesc:
                         if "altrender" in phys.attrib.keys():
-                            if phys.attrib['altrender'] == "material spaceoccupied":
+                            if phys.attrib['altrender'] == "materialtype spaceoccupied":
                                 del phys.attrib['altrender']
                     # default add brackets around extents
                     if level not in exceptions:
