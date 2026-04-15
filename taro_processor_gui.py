@@ -8404,7 +8404,8 @@ def processor(my_input_file=str, singularization_dict=dict, translation_dict=dic
             emphasis = ET.SubElement(paragraph, "emph")
             emphasis.attrib['render'] = "italic"
             emphasis.text = "The terms listed here were used to catalog the records. The terms can be used to find similar or related records."
-            controlaccess.addprevious(paragraph)
+            control_head = root.find(".//ead:archdesc/ead:controlaccess/ead:head", namespaces=nsmap)
+            control_head.addnext(paragraph)
             window['-OUTPUT-'].update(f"added intro language to index terms\n", append=True)
     except Exception as e:
         Sg.popup_error_with_traceback(f"trouble adding into language to index terms area", e)
@@ -8469,6 +8470,7 @@ def processor(my_input_file=str, singularization_dict=dict, translation_dict=dic
     subject = root.xpath(".//ead:subject", namespaces=nsmap)
     if subject is not None:
         for item in subject:
+            item.text = item.text.replace(" -- ", "--")
             if "source" in item.attrib.keys():
                 try:
                     item.attrib['source'] = normalized_source(item.attrib['source'])
@@ -8511,6 +8513,7 @@ def processor(my_input_file=str, singularization_dict=dict, translation_dict=dic
         for item in geogname:
             if item.text is not None:
                 try:
+                    item.text = item.text.replace(" -- ", "--")
                     if "source" in item.attrib.keys():
                         item.attrib['source'] = normalized_source(item.attrib['source'])
                         window['-OUTPUT-'].update(f"normalized source attribute for {item.text}\n", append=True)
@@ -8521,6 +8524,7 @@ def processor(my_input_file=str, singularization_dict=dict, translation_dict=dic
     if functional is not None:
         for item in functional:
             if item.text is not None:
+                item.text = item.text.replace(" -- ", "--")
                 try:
                     if "source" in item.attrib.keys():
                         item.attrib['source'] = normalized_source(item.attrib['source'])
@@ -8532,6 +8536,7 @@ def processor(my_input_file=str, singularization_dict=dict, translation_dict=dic
     if titles is not None:
         for item in titles:
             if item.text is not None:
+                item.text = item.text.replace(" -- ", "--")
                 try:
                     if "source" in item.attrib.keys():
                         item.attrib['source'] = normalized_source(item.attrib['source'])
@@ -8553,13 +8558,13 @@ def processor(my_input_file=str, singularization_dict=dict, translation_dict=dic
         controlaccess_titles = root.find(".//ead:archdesc/ead:controlaccess/ead:controlaccess[ead:head = 'Titles']", namespaces=nsmap)
         controlaccess_functions = root.find(".//ead:archdesc/ead:controlaccess/ead:controlaccess[ead:head = 'Functions']", namespaces=nsmap)
         if controlaccess_personal is not None:
-            main_controlaccess.append(controlaccess)
+            main_controlaccess.append(controlaccess_personal)
         if controlaccess_corp is not None:
             main_controlaccess.append(controlaccess_corp)
         if controlaccess_subPerson is not None:
             main_controlaccess.append(controlaccess_subPerson)
         if controlaccess_subCorp is not None:
-            main_control.append(controlaccess_subCorp)
+            main_controlaccess.append(controlaccess_subCorp)
         if controlaccess_subject is not None:
             main_controlaccess.append(controlaccess_subject)
         if controlaccess_places is not None:
