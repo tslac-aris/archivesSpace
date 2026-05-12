@@ -103,7 +103,7 @@ layout = [
     [
         SG.Push(),
         SG.Text("ArchivesSpace API address:", key="-ADDRESS-", visible=False),
-        SG.Input(size=(50, 1), key="-API_URL-", default_text="https://tslac.lyrasistechnology.org/staff/api/", visible=False)
+        SG.Input(size=(50, 1), key="-API_URL-", default_text="enter api address here", visible=False)
     ],
     [
         SG.Push(),
