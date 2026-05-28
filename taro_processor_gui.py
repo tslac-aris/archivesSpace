@@ -9116,6 +9116,11 @@ def processor(my_input_file=str, singularization_dict=dict, translation_dict=dic
         if "parent" in item.attrib.keys():
             item.attrib.pop('parent')
             window['-OUTPUT-'].update(f"removed parent attribute to {item.text}\n", append=True)
+    arrangements = root.xpath(".//ead:arrangement/ead:list", namespaces=nsmap)
+    for arrangement in arrangements:
+        if arrangement is not None:
+            if "type" in arrangement.attrib.keys():
+                arrangement.attrib.pop("type")
     # remove unitids if they are duplicative to deal with spreadsheet imports creating a lot of the same unitid
     try:
         unitid_list = []
