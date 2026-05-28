@@ -169,7 +169,7 @@ layout = [
         SG.In(size=(50, 1), enable_events=True, key="-LOCATION_BARCODE-")
     ],
     [
-        SG.Button("Update location", tooltip="Click to update location data", bind_return_key=True),
+        SG.Button("Update location", tooltip="Click to update location data", bind_return_key=False),
         SG.Push(),
         SG.Button("Upload batch update", tooltip="Click to upload batch update"),
     ],
@@ -279,3 +279,7 @@ while True:
     if event == "Close" or event == SG.WIN_CLOSED:
         break
 window.close()
+
+#TODO Add panel for adding information to the system
+#TODO add a barcode to a container
+#TODO add a barcode to a location
