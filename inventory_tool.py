@@ -1,9 +1,83 @@
 import pandas as PD
 import PySimpleGUI as SG
 import requests
+from datetime import datetime
 import json
 
 my_icon64 = b'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'
+
+space_dict = {'LittleMS': 2.5, "MS": 5.0, "RS": 12.0, "Standard Width": 36.0, "Narrow Width": 24.0, "no value": 0.0}
+
+default_location = {'jsonmodel_type': 'container_location',
+                    'ref': 'something',
+                    'start_date': '2026-05-11',
+                    'status': 'current'}
+#to manipulate data and calculate available storage
+def storage_space(location_dictionary):
+    new_space_dictionary = {}
+    aggregate = 0
+    for key in location_dictionary:
+        eligible_list = ['RS', 'MS', 'LittleMS', 'no value']
+        location_in_room = location_dictionary[key]['location_in_room']
+        if "Range" in location_in_room and "Section" in location_in_room and "Shelf" in location_in_room:
+            location_profile = location_dictionary[key]['location_profile']
+            if location_profile == "no value":
+                location_profile = "Standard Width"
+            space = space_dict[location_profile]
+            eligible_flag = True
+            for container in location_dictionary[key]['top_containers']:
+                if container['containers_container_profile'] in eligible_list:
+                    space = space - space_dict[container['containers_container_profile']]
+                else:
+                    eligible_flag = False
+            if eligible_flag is True:
+                if space >= 2.5:
+                    #print(f"{location_dictionary[key]['room']}, {location_dictionary[key]['location_in_room']}: {space} linear inches")
+                    new_space_dictionary[key] = location_dictionary[key]
+                    aggregate += space
+    window['-OUTPUT-'].update(f"{aggregate} space available in stacks\n", append=True)
+    return new_space_dictionary
+
+def circulation(variables_dict, location_dict):
+    if values['-SESSION_TOKEN-'] == "":
+        window['-OUTPUT-'].update("log in and try again\n", append=True)
+        return
+    headers = {'X-ArchivesSpace-Session': variables_dict['-SESSION_TOKEN-']}
+    window['-OUTPUT-'].update(f"{headers}\n", append=True)
+    try:
+        top_container = requests.get(f"{variables_dict['-API_URL-']}/repositories/2/find_by_id/top_containers", params={"barcode[]": variables_dict['-BOX_BARCODE-'], "resolve[]": "top_containers"}, headers=headers).json()
+        print(top_container)
+        top_container_URI = f"{variables_dict['-API_URL-']}{top_container['top_containers'][0]['ref']}"
+        print(top_container_URI)
+        top_container_data = top_container['top_containers'][0]['_resolved']
+        listy = list(location_dict.keys())
+        listy = listy[0]
+        current_location = location_dict[listy]
+        current_time = datetime.today().strftime('%Y-%m-%d')
+        new_location = default_location
+        new_location['ref'] = listy
+        new_location['start_date'] = current_time
+        top_container_data.pop("long_display_string")
+        if "internal_note" not in top_container_data.keys():
+            top_container_data['internal_note'] = ""
+        if variables_dict['circulation'] == "reference":
+            top_container_data['internal_note'] = f"{top_container_data['internal_note']}Circulated to reference on {current_time} by user {variables_dict['-API_USERNAME-']}.\n"
+            top_container_data['container_locations'].append(new_location)
+        if variables_dict['circulation'] == "checkout":
+            top_container_data['internal_note'] = f"{top_container_data['internal_note']}Checked out to location {current_location['record_title']} by user {variables_dict['-API_USERNAME-']} on {current_time}.\n"
+            top_container_data['container_locations'].append(new_location)
+        if variables_dict['circulation'] == "return":
+            top_container_data['internal_note'] = f"{top_container_data['internal_note']}Container returned to {current_location['record_title']} by user {variables_dict['-API_USERNAME-']} on {current_time}.\n"
+            top_container_data['container_locations'] = [new_location]
+        if variables_dict['circulation'] == "transfer":
+            top_container_data['internal_note'] = f"{top_container_data['internal_note']}Container transferred to {current_location['record_title']} by user {variables_dict['-API_USERNAME-']} on {current_time}.\n"
+            top_container_data['container_locations'] = [new_location]
+        response = requests.post(top_container_URI, json=top_container_data, headers=headers)
+        window['-OUTPUT-'].update(f"{response.status_code}\n", append=True)
+        return response.status_code
+    except:
+        window['-OUTPUT-'].update(f"trouble updating the location of this container, try doing it manually\n", append=True)
+        return
 
 #to take a single dataframe row and convert it to a dictionary. used in tandem with dict_converter
 def row_converter(row, listy):
@@ -195,6 +269,47 @@ layout = [
     ],
     [
         SG.Checkbox("Enable edit", key="-ENABLE_EDIT-"),
+        SG.Push(),
+        SG.Checkbox("Open container management/Circulation", key="-CONTAINER_MANAGEMENT-")
+    ],
+    [
+        SG.Text("Container management stuff", key="-Test_case-", enable_events=True, visible=False)
+    ],
+    [
+        SG.Push(),
+        SG.Radio("Checkout to reference", visible=False, key="-REFERENCE_CHECKOUT-", group_id="-circulation-"),
+        SG.Radio("Checkout", visible=False, key="-CHECKOUT-", group_id="-circulation-"),
+        SG.Radio("Return", visible=False, key="-RETURN-", group_id="-circulation-"),
+        SG.Radio("Transfer", visible=False, key="-TRANSFER-", group_id="-circulation-"),
+        SG.Push()
+    ],
+    [
+        SG.Push(),
+        SG.Text("Container barcode: ", key="-BOX_BARCODE_TEXT-", visible=False),
+        SG.In("", key="-BOX_BARCODE-", enable_events=True, visible=False),
+    ],
+    [
+        SG.Push(),
+        SG.Text("Location barcode: ", key="-CIRCULATION_LOCATION_TEXT-", visible=False),
+        SG.In("", key="-CIRCULATION_LOCATION-", visible=False, enable_events=True),
+    ],
+    [
+        SG.Push(),
+        SG.Button("Circulate Container", size=(50, 1), enable_events=True, key="-CIRCULATE_CONTAINER-", visible=False),
+        SG.Push()
+    ],
+    [
+        SG.Push(),
+        SG.Text("Needed linear inches: ", key="-INCHES_TEXT-", visible=False),
+        SG.In("", key="-INCHES-", visible=False),
+    ],
+    [
+        SG.Button("Calculate Storage", visible=False, key="-CALCULATE_STORAGE-"),
+        SG.Push(),
+        SG.Button("Find me storage", visible=False, key="-FIND_ME_STORAGE-"),
+    ],
+    [
+        SG.HorizontalSeparator()
     ],
     [
         SG.Push(),
@@ -261,6 +376,10 @@ while True:
     variables_dict["-LOCATION_BARCODE-"] = values["-LOCATION_BARCODE-"]
     variables_dict['-TOP_CONTAINERS-'] = values["-TOP_CONTAINERS-"]
     variables_dict["-SESSION_TOKEN-"] = values["-SESSION_TOKEN-"]
+    variables_dict['-BOX_BARCODE-'] = values['-BOX_BARCODE-']
+    variables_dict['-CIRCULATION_LOCATION-'] = values['-CIRCULATION_LOCATION-']
+    if values['-INCHES-'] == "":
+        values['-INCHES-'] = "0"
     if values['-LOGIN_YES-'] is True:
         window['-ADDRESS-'].update(visible=True)
         window['-API_URL-'].update(visible=True)
@@ -277,6 +396,15 @@ while True:
         window['-PASSWORD-'].update(visible=False)
         window['-API_PASSWORD-'].update(visible=False)
         window['-TEST_LOGIN-'].update(visible=False)
+    variables_dict['circulation'] = ""
+    if values['-REFERENCE_CHECKOUT-'] is True:
+        variables_dict['circulation'] = "reference"
+    if values['-CHECKOUT-'] is True:
+        variables_dict['circulation'] = "checkout"
+    if values['-RETURN-'] is True:
+        variables_dict['circulation'] = "return"
+    if values['-TRANSFER-'] is True:
+        variables_dict['circulation'] = "transfer"
     headers = {'SESSION': ''}
     location_key = ""
     if event == "-TEST_LOGIN-":
@@ -324,6 +452,180 @@ while True:
         window['-OUTPUT-'].update("spreadsheet loaded\n", append=True)
     #to query spreadsheet by stacks coordinates. especially meant for times when no location barcode exists yet
     #can be iterable against floor/room. not iterable on range/section/shelf as those are a single field in the spreadsheet
+    if values["-CONTAINER_MANAGEMENT-"] is True:
+        window['-Test_case-'].update(visible=True)
+        window['-REFERENCE_CHECKOUT-'].update(visible=True)
+        window['-CHECKOUT-'].update(visible=True)
+        window['-RETURN-'].update(visible=True)
+        window['-TRANSFER-'].update(visible=True)
+        window['-BOX_BARCODE_TEXT-'].update(visible=True)
+        window['-BOX_BARCODE-'].update(visible=True)
+        window['-CIRCULATION_LOCATION_TEXT-'].update(visible=True)
+        window['-CIRCULATION_LOCATION-'].update(visible=True)
+        window['-CIRCULATE_CONTAINER-'].update(visible=True)
+        window['-CALCULATE_STORAGE-'].update(visible=True)
+        window['-INCHES_TEXT-'].update(visible=True)
+        window['-INCHES-'].update(visible=True)
+        window['-FIND_ME_STORAGE-'].update(visible=True)
+    if values['-CONTAINER_MANAGEMENT-'] is False:
+        window['-Test_case-'].update(visible=False)
+        window['-REFERENCE_CHECKOUT-'].update(visible=False)
+        window['-CHECKOUT-'].update(visible=False)
+        window['-RETURN-'].update(visible=False)
+        window['-TRANSFER-'].update(visible=False)
+        window['-BOX_BARCODE_TEXT-'].update(visible=False)
+        window['-BOX_BARCODE-'].update(visible=False)
+        window['-CIRCULATION_LOCATION_TEXT-'].update(visible=False)
+        window['-CIRCULATION_LOCATION-'].update(visible=False)
+        window['-CIRCULATE_CONTAINER-'].update(visible=False)
+        window['-CALCULATE_STORAGE-'].update(visible=False)
+        window['-INCHES_TEXT-'].update(visible=False)
+        window['-INCHES-'].update(visible=False)
+        window['-FIND_ME_STORAGE-'].update(visible=False)
+    if event == "-CIRCULATE_CONTAINER-":
+        if values['-CIRCULATION_LOCATION-'] == "" or values['-CIRCULATION_LOCATION-'] == "no value":
+            window['-OUTPUT-'].update("no barcode provided\nEnter a location barcode and try again\n", append=True)
+        else:
+            if "inventory_data" in locals() or "inventory_data" in globals():
+                new_inventory = inventory_data
+                new_inventory = new_inventory[new_inventory['location_barcode'] == values['-CIRCULATION_LOCATION-']]
+                new_data = dict_converter(new_inventory)
+                window['-OUTPUT-'].update("filtered spreadsheet data to applicable items\n", append=True)
+                location_dictionary = new_data[0]
+                listy = list(location_dictionary.keys())
+                print(listy)
+                if len(listy) == 0:
+                    window['-OUTPUT-'].update("no matching barcode, check that it is entered into the system\n", append=True)
+                if len(listy) > 1:
+                    window['-OUTPUT-'].update("more than 1 matching location barcode, manual update needed\n", append=True)
+                if len(listy) == 1:
+                    my_circulation = circulation(variables_dict, location_dictionary)
+                    if my_circulation == 200:
+                        barcode = values['-BOX_BARCODE-']
+                        #listy = list(location_dictionary.keys())
+                        listy = listy[0]
+                        inventory_data.loc[inventory_data['containers_top_container_barcode'] == barcode, 'record_title'] = location_dictionary[listy]['record_title']
+                        inventory_data.loc[inventory_data['containers_top_container_barcode'] == barcode, 'building'] = location_dictionary[listy]['building']
+                        inventory_data.loc[inventory_data['containers_top_container_barcode'] == barcode, 'floor'] = location_dictionary[listy]['floor']
+                        inventory_data.loc[inventory_data['containers_top_container_barcode'] == barcode, 'room'] = location_dictionary[listy]['room']
+                        inventory_data.loc[inventory_data['containers_top_container_barcode'] == barcode, 'location_url'] = listy
+                        inventory_data.loc[inventory_data['containers_top_container_barcode'] == barcode, 'location_profile'] = location_dictionary[listy]["location_profile"]
+                        inventory_data.loc[inventory_data['containers_top_container_barcode'] == barcode, 'location_barcode'] = location_dictionary[listy]['location_barcode']
+                        inventory_data.loc[inventory_data['containers_top_container_barcode'] == barcode, 'location_in_room'] = location_dictionary[listy]['location_in_room']
+                        try:
+                            writer = inventory_data.to_csv(values['-LOCATIONS-'], index=False)
+                        except:
+                            window['-OUTPUT-'].update("trouble updating spreadsheet, is it open? If so, update manually and close for further updates\n", append=True)
+                    else:
+                        window['-OUTPUT-'].update(f"something wrong with location update for box with barcode {values['-BOX_BARCODE-']}\n", append=True)
+            else:
+                window['-OUTPUT-'].update("load inventory spreadsheet to continue\n", append=True)
+    if event == "-CALCULATE_STORAGE-":
+        window['-OUTPUT-'].update("trial successful\n", append=True)
+        if "inventory_data" in locals() or "inventory_data" in globals():
+            new_inventory = inventory_data
+            if values['-FLOOR-'] != "":
+                an_inventory = new_inventory['floor'].str.contains(values['-FLOOR-'])
+                new_inventory = new_inventory[an_inventory]
+            if values['-ROOM-'] != "":
+                an_inventory = new_inventory['room'].str.contains(values['-ROOM-'])
+                new_inventory = new_inventory[an_inventory]
+            new_data_set = dict_converter(new_inventory)
+            location_dictionary = new_data_set[0]
+            new_space_dictionary = storage_space(location_dictionary)
+        else:
+            print("fail")
+            window['-OUTPUT-'].update("you need to load the spreadsheet first\n")
+    if event == "-FIND_ME_STORAGE-":
+        new_inventory = inventory_data
+        if values['-FLOOR-'] != "":
+            an_inventory = new_inventory['floor'].str.contains(values['-FLOOR-'])
+            new_inventory = new_inventory[an_inventory]
+        if values['-ROOM-'] != "":
+            an_inventory = new_inventory['room'].str.contains(values['-ROOM-'])
+            new_inventory = new_inventory[an_inventory]
+        new_data_set = dict_converter(new_inventory)
+        location_dictionary = new_data_set[0]
+        old_space_dictionary = storage_space(location_dictionary)
+        contiguous = 0
+        locations_list = []
+        window['-OUTPUT-'].update("arranging locations to look through\n", append=True)
+        for key in old_space_dictionary.keys():
+            locations_list.append(old_space_dictionary[key]['location_in_room'])
+        locations_list.sort()
+        new_space_dictionary = {}
+        for item in locations_list:
+            for key in old_space_dictionary.keys():
+                if item == old_space_dictionary[key]['location_in_room']:
+                    new_space_dictionary[key] = old_space_dictionary[key]
+                    window['-OUTPUT-'].update(".", append=True)
+        window['-OUTPUT-'].update("\narrangement completed\n", append=True)
+        starting_location = ""
+        storage_list = "Available space at:\n"
+        #starting_location = f"{new_space_dictionary[locations_list[0]]['floor']}, {new_space_dictionary[locations_list[0]]['room']}, {new_space_dictionary[locations_list[0]]['location_in_room']}"
+        for key in new_space_dictionary.keys():
+            current_location = f"{new_space_dictionary[key]['floor']}, {new_space_dictionary[key]['room']}, {new_space_dictionary[key]['location_in_room']}"
+            if not starting_location == "":
+                print(prior_location)
+                tester = prior_location.split(", ")
+                test1 = ""
+                if tester[-1].startswith("Shelf"):
+                    num1 = str(int(tester[-1].split(" ")[-1]) + 1)
+                    while len(num1) < 2:
+                        num1 = f"0{num1}"
+                    num1 = f"Shelf {num1}"
+                    test1 = prior_location.replace(tester[-1], num1)
+                test2 = ""
+                if tester[-2].startswith("Section") and not tester[-2].endswith("Bonus"):
+                    num2 = str(int(tester[-2].split(" ")[-1]) + 1)
+                    while len(num2) < 2:
+                        num2 = f"0{num2}"
+                    num2 = f"Section {num2}"
+                    test2 = prior_location.replace(tester[-2], num2).replace(tester[-1], "Shelf 01")
+                test3 = ""
+                if tester[-3].startswith("Range"):
+                    directions = ['North', 'South', 'East', 'West']
+                    if not tester[-3].split(" ")[-1] in directions:
+                        num3 = str(int(tester[-3].split(" ")[-1]) + 1)
+                        while len(num3) < 2:
+                            num3 = f"0{num3}"
+                        num3 = f"Range {num3}"
+                        test3 = prior_location.replace(tester[-3], num3).replace(tester[-2], "Section 01").replace(tester[-1], "Section 01")
+                new_flag = True
+                if current_location == test1 or current_location == test2 or current_location == test3:
+                    new_flag = False
+                if new_flag is True:
+                    if contiguous >= int(values['-INCHES-']):
+                        window['-INVENTORY_OUTPUT-'].update(f"{str(contiguous)} linear inches available starting at {starting_location}\n", append=True)
+                        storage_list = f"{storage_list}{str(contiguous)} linear inches available starting at {starting_location}\n"
+                    starting_location = current_location
+                    contiguous = 0
+                prior_location = current_location
+            else:
+                starting_location = current_location
+                prior_location = current_location
+            '''
+            contiguous_check = int(starting_line.split("/")[-1]) + 1
+            if key != f"/locations/{str(contiguous_check)}":
+                if contiguous >= int(values['-INCHES-']):
+                    window['-INVENTORY_OUTPUT-'].update(f"{str(contiguous)} linear inches available starting at {starting_location}\n", append=True)
+                    starting_location = f"{new_space_dictionary[key]['floor']}, {new_space_dictionary[key]['room']}, {new_space_dictionary[key]['location_in_room']}"
+                    contiguous = 0
+            starting_line = key
+            '''
+            eligible_list = ['RS', 'MS', 'LittleMS', 'no value']
+            location_in_room = new_space_dictionary[key]['location_in_room']
+            if "Range" in location_in_room and "Section" in location_in_room and "Shelf" in location_in_room:
+                location_profile = new_space_dictionary[key]['location_profile']
+                if location_profile == "no value":
+                    location_profile = "Standard Width"
+                space = space_dict[location_profile]
+                for container in location_dictionary[key]['top_containers']:
+                    if container['containers_container_profile'] in eligible_list:
+                        space = space - space_dict[container['containers_container_profile']]
+                contiguous += space
+        storage_list = f"{storage_list}To print this out copy text into a text editor"
+        SG.popup_scrolled(storage_list, title="Available space at:", size=(100, 35), modal=True)
     if event == "Search By Location Coordinates":
         aggregated = f"{values['-RANGE-']}, {values['-SECTION-']}, {values['-SHELF-']}"
         window['-TOP_CONTAINER_BARCODE-'].update("", readonly=False)
@@ -349,6 +651,7 @@ while True:
                 window['-LOCATION_URI-'].update(key)
                 window['-LOCATION_URI-'].update(readonly=True)
                 window['-LOCATION_BARCODE-'].update(location_dictionary[key]['location_barcode'])
+                window['-LOCATION_BARCODE-'].update(readonly=False)
                 if location_dictionary[key]['location_barcode'] != "no value":
                     window['-LOCATION_BARCODE-'].update(readonly=True)
                 window['-LOCATION_PROFILE-'].update(location_dictionary[key]['location_profile'])
