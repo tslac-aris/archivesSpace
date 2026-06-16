@@ -9006,100 +9006,101 @@ def processor(my_input_file=str, singularization_dict=dict, translation_dict=dic
                 Sg.popup_error_with_traceback(f"trouble normalazing the details/commas near in level {c} after {last_did}", e)
                 raise
             # processing containers into comma delimited and "thru"
-        for did in dids:
-            containers = did.xpath("./ead:container", namespaces=nsmap)
-            if containers is not None:
-                if len(containers) > 1:
-                    try:
-                        containers_list = "clear"
-                        containers_list = dict()
-                        parent_flag = False
-                        container_range = False
-                        for container in containers:
-                            print(container.text)
-                            if "parent" in container.attrib.keys():
-                                parent_flag = True
-                            if container.attrib['type'] not in containers_list.keys():
-                                containers_list[container.attrib['type']] = []
-                            containers_list[container.attrib['type']].append(container.text)
-                        if parent_flag is False:
-                            container_index = 0
-                            for my_container in containers_list.keys():
-                                dash_flag = False
-                                for item in containers_list[my_container]:
-                                    if "-" in item:
-                                        dash_flag = True
-                                if dash_flag is False:
-                                    container_text = ""
+        if values['-SKIP_THRU-'] is False:
+            for did in dids:
+                containers = did.xpath("./ead:container", namespaces=nsmap)
+                if containers is not None:
+                    if len(containers) > 1:
+                        try:
+                            containers_list = "clear"
+                            containers_list = dict()
+                            parent_flag = False
+                            container_range = False
+                            for container in containers:
+                                print(container.text)
+                                if "parent" in container.attrib.keys():
+                                    parent_flag = True
+                                if container.attrib['type'] not in containers_list.keys():
+                                    containers_list[container.attrib['type']] = []
+                                containers_list[container.attrib['type']].append(container.text)
+                            if parent_flag is False:
+                                container_index = 0
+                                for my_container in containers_list.keys():
+                                    dash_flag = False
                                     for item in containers_list[my_container]:
-                                        container_text = f"{container_text}, {item}"
-                                    container_text = container_text[2:]
-                                    containers[container_index].attrib['type'] = my_container
-                                    containers[container_index].text = container_text
-                                if dash_flag is True:
-                                    new_dict = "someting"
-                                    new_dict = {}
-                                    container_text = ""
-                                    for item in containers_list[my_container]:
-                                        item = item.split("-")
-                                        if item[0] not in new_dict.keys():
-                                            new_dict[item[0]] = []
-                                        new_dict[item[0]].append(item[-1])
-                                    for my_value in new_dict.keys():
-                                        high = 0
-                                        low = 0
-                                        new_value = new_dict[my_value]
-                                        new_value.sort()
-                                        print(new_value)
-                                        for number in new_value:
-                                            if high == 0 and low == 0:
-                                                high = number
-                                                low = number
-                                            else:
-                                                new_number = int(high) + 1
-                                                if int(number) == int(new_number):
-                                                    high = number
-                                                else:
-                                                    container_text = f"{container_text}, {my_value}-{low} thru {my_value}-{high}"
+                                        if "-" in item:
+                                            dash_flag = True
+                                    if dash_flag is False:
+                                        container_text = ""
+                                        for item in containers_list[my_container]:
+                                            container_text = f"{container_text}, {item}"
+                                        container_text = container_text[2:]
+                                        containers[container_index].attrib['type'] = my_container
+                                        containers[container_index].text = container_text
+                                    if dash_flag is True:
+                                        new_dict = "someting"
+                                        new_dict = {}
+                                        container_text = ""
+                                        for item in containers_list[my_container]:
+                                            item = item.split("-")
+                                            if item[0] not in new_dict.keys():
+                                                new_dict[item[0]] = []
+                                            new_dict[item[0]].append(item[-1])
+                                        for my_value in new_dict.keys():
+                                            high = 0
+                                            low = 0
+                                            new_value = new_dict[my_value]
+                                            new_value.sort()
+                                            print(new_value)
+                                            for number in new_value:
+                                                if high == 0 and low == 0:
                                                     high = number
                                                     low = number
-                                        if high == low:
-                                            container_text = f"{container_text}, {my_value}-{low}"
-                                        if high != low:
-                                            if len(new_value) == 2:
-                                                container_text = f"{container_text}, {my_value}-{low} and {high}"
-                                            else:
-                                                container_text = f"{container_text}, {my_value}-{low} thru {high}"
-                                    container_text = container_text[2:]
-                                    containers[container_index].attrib['type'] = my_container
-                                    containers[container_index].text = container_text
-                                    container_index += 1
-                                    print(container_index)
-                            while len(containers) > container_index:
-                                print(len(containers))
-                                containers[-1].getparent().remove(containers[-1])
-                                containers = did.xpath("./ead:container", namespaces=nsmap)
-                                '''print("manipulating containers of different kinds")
-                                container_text = ""
-                                for item in containers_list:
-                                    container_text = f"{container_text}, {item}"
-                                container_text = container_text[2:]
-                                print(container_text)
-                                for container in containers:
-                                    container.text = container_text
-                                while len(containers) > 1:
+                                                else:
+                                                    new_number = int(high) + 1
+                                                    if int(number) == int(new_number):
+                                                        high = number
+                                                    else:
+                                                        container_text = f"{container_text}, {my_value}-{low} thru {my_value}-{high}"
+                                                        high = number
+                                                        low = number
+                                            if high == low:
+                                                container_text = f"{container_text}, {my_value}-{low}"
+                                            if high != low:
+                                                if len(new_value) == 2:
+                                                    container_text = f"{container_text}, {my_value}-{low} and {high}"
+                                                else:
+                                                    container_text = f"{container_text}, {my_value}-{low} thru {high}"
+                                        container_text = container_text[2:]
+                                        containers[container_index].attrib['type'] = my_container
+                                        containers[container_index].text = container_text
+                                        container_index += 1
+                                        print(container_index)
+                                while len(containers) > container_index:
+                                    print(len(containers))
                                     containers[-1].getparent().remove(containers[-1])
                                     containers = did.xpath("./ead:container", namespaces=nsmap)
-                            if len(containers_list) > 0 and len(containers_dict) > 0:
-                                container_text = ""'''
-                    except:
-                        window['-OUTPUT-'].update(f"trouble normalizing a container thru range, look at changing manually\n", append=True)
-                        error_text = ""
-                        for container in containers:
-                            error_text = f"{error_text}{container.text}/"
-                        error_text = error_text[:-1]
-                        Sg.popup_get_text(f"trouble processing containers at {error_text}, \nconsider manually concatenating original EAD and re-running tool\npress ok to continue")
-                        continue
+                                    '''print("manipulating containers of different kinds")
+                                    container_text = ""
+                                    for item in containers_list:
+                                        container_text = f"{container_text}, {item}"
+                                    container_text = container_text[2:]
+                                    print(container_text)
+                                    for container in containers:
+                                        container.text = container_text
+                                    while len(containers) > 1:
+                                        containers[-1].getparent().remove(containers[-1])
+                                        containers = did.xpath("./ead:container", namespaces=nsmap)
+                                if len(containers_list) > 0 and len(containers_dict) > 0:
+                                    container_text = ""'''
+                        except:
+                            window['-OUTPUT-'].update(f"trouble normalizing a container thru range, look at changing manually\n", append=True)
+                            error_text = ""
+                            for container in containers:
+                                error_text = f"{error_text}{container.text}/"
+                            error_text = error_text[:-1]
+                            Sg.popup_get_text(f"trouble processing containers at {error_text}, \nconsider manually concatenating original EAD and re-running tool\npress ok to continue")
+                            continue
     # remove head from non-major level scope contents notes
     for c in c_tags:
         scope_heads = root.xpath(f".//ead:{c}/ead:scopecontent/ead:head", namespaces=nsmap)
@@ -9190,6 +9191,10 @@ layout = [[
     [
         Sg.Push(),
         Sg.Checkbox("Use html output version 2?", key="-xsl2-", tooltip="to use a revised version of the xsl transform to output a more tidy html file", enable_events=True)
+    ],
+    [
+        Sg.Push(),
+        Sg.Checkbox("Skip concatenating multiple containers per item", key="-SKIP_THRU-", tooltip="normal behavior will try to make multiple box of the same box type with the same YYYY/### prefix become a thru range, this disables that")
     ],
     [
         Sg.Push(),
