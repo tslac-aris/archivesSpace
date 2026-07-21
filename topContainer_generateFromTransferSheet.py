@@ -4,7 +4,6 @@ from copy import deepcopy
 from asnake.client import ASnakeClient
 import asnake.logging as logging
 import datetime
-import pandas as PD
 today_date = datetime.datetime.today().strftime('%Y-%m-%d')
 logging.setup_logging(filename='extent_type_changer_' + str(today_date) + '.log')
 logger = logging.get_logger('extent_type_changes_log')
