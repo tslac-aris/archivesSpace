@@ -10,6 +10,7 @@ You will need to install the following modules for this to work properly. Order 
 * datetime
 * errno
 * lxml
+* pysimplegui v4.xx
 * re
 * shutil
 
@@ -27,6 +28,8 @@ It will also de-nest specific fields which may have been nested previously.
 * ead:controlaccess
 
 Note that it will also remove the original container ead:controlaccess and relatedmaterial. Also, the controlaccess and relatedmaterial sections are output as immediate siblings the arrangement so it may not place that section exactly where it came from. This **WILL NOT** affect how data is rendered.
+
+**Note:** ArchivesSpace normalization and system import was completed some years ago in earlier editions of ArchivesSpace and may not be compatible with current generation processes.
 
 ### normalizeDates_tocsv.py
 For before ArchivesSpace ead import. This is meant to help with standardizing how dates are phrased in a finding aid. Over time it is common for different naming conventions to be used and different data entry standards to be applied. This tool works by taking the normal attribute of unitdate as the marker for a beginning and ending date. It works as a crawler and will output one spreadsheet per ead file it encounters.
@@ -62,57 +65,40 @@ Note that the point here is to know what you have and standardize it before impo
 ### normalizeExtent_tocsv_oneCSV.py
 For before ArchivesSpace ead import. Same as above but spits out to a single spreadsheet so everything can be done by one person. The fromcsv script pairs based on filename so it should work fine. I *highly* recommend using this over the individual spreadsheets for standardized approach reasons. For either, you can delete a line from the spreadsheet if it is fine. Just don't change the ead file until you are done.
 
-### taro2processor.py
-For pre-*TARO 2.0* upload prep. Also for before ArchivesSpace import if applicable but it can handle ArchivesSpace export just fine.
+# Executable tools
+Executable tools *must* by compiled into a graphical executable, they do not run as well as a script. Graphical interface constructed using pysimplegui. See their documentation for how to compile the executable.
+## executables/taro_processor.py
+Requires compilation into an executable using pysimplegui version 4.xx. A complete re-write under the hood (since remove from github) of a prior graphical interface to normalize ArchivesSpace export for upload onto TARO (https://txarchives.org).
+Rewrite was required to accommodate Lyrasis hosting which included a TARO-EAD export function. The TARO-EAD export plugin does many tasks but not everything to match TSLAC standards, this tool makes up the difference.
 
-This tool uses a combination of embedded xsl and python processing (including text replacement) to prepare a file either exported from ArchivesSpace or handmade to be uploaded to TARO for its 2.0 iteration.
+It will also create a html page to visually quickly QC the output for problems. An extra checkbox was added to activate a different html export that resolves an issue with table formatting which isn't technically "approved." Original file is kept, normalized file and html output saved to same folder as normalized file.
 
-When invoked, the tool will first transform the data to be mostly TARO 2.0 compliant. 
+Error handling includes pop-ups that try to explain what step the problem arose in and where the error might be. Depending on the error, it may be possible to continue processing but you will need to make notes on the error before proceeding.
+Individual actions taken on a file are very detailed and unrealistic to list out here.
 
-It expects a spreadsheet with top-level unitids for inserting a control number into the finding aid, with the spreadsheet having the ead filename (without extension) in column 1 and the control number in column 2. If you don't want that comment out (`#` at the beginning of the line) lines 2818-2823 and 2848-2852 and 2874-2878. If you wish to use the function, the file should be named txNumbers.csv and modify the `label`s and `repositorycode`s part of lines 2850-2852.
+## executables/inventory_tool.py
+Swiss army knife style tool to handle many inventory functions either not done easily in ArchivesSpace or not handled by ArchivesSpace.
+Only requires Location Holdings Report from reporting section of ArchivesSpace.
 
-This tool will do the following:
-* nest all of the agents in an ASpace export that are listed as creators into a controlaccess section
-* nest all of the separate related material notes  from an ASpace export into a nested relatedmaterial structure
-* remove the descgroup encapsulating tags
-* normalize subjects by removing trailing/predecing spaces
-* insert a date normal in any unitdate if it is missing.
-* push a normalized file to an error folder if the output is badly formed xml. This can happen for a few reasons but most often it has to do with nested related material
-* push a normalized file to the error folder if a controlaccess term is missing its source attribute or if that attribute is set to local
+**NOTE:** if the formatting of this report changes over time the code will also need to change to account for that.
 
-***Note*** that after a file has been processed it will ask for confirmation that you have checked the ead file for accuracy/completeness before moving on to prevent forgetting what to check on.
+Has the following core functions:
+* Circulation
+  * Leveraging barcodes for a destination location and container to change locations in ArchivesSpace and insert a internal note on current location with an audit trail for all movements of the container over time.
+* Inventory management
+  * Can generate a print-out of either a whole room or range of Range/Section/Shelf coordinates
+  * Generates a pop-up list, can also generate a PDF version and CSV version of the list
+  * *NOTE* that nomenclature is specific to TSLAC and may need customization for other to use
+  * Generate a gross volume of free stack space within a room
+  * Using a value of how many linear inches are needed, generate a list of where gaps in space exist that can fit that volume of materials
+* Container inventorying by container identifier or accession/resource identifier
+  * Container identifier uses a text string startswith method and generates a stacks coordinates output
+  * Accession/Resource identifier uses an exact match method and generates a stacks coordinates output
+* Shelf-level inventory management
+  * Adding barcodes to containers
+  * Adding barcodes to locations
+  * Updating location profiles to get a better read of available stacks space
 
-***Note*** that the revisiondesc may be affected by the processor so you will need to check it after for possible re-insertion of the data.
-
-***Note*** also that there may be a superfluous "." added in origination for unknown reasons, check that as well.
-
-***Note*** archref has a specific process for modifying the native output without a xlink: prefix to have that prefix in the attributes. worth verifying that the process applied because variance in ***your*** data practices can affect whether it worked.
-
-***Note*** if your containers have 'box' or 'folder', they will be capitalized.
-
-#### ***Note about date normal attribute:*** 
-This will most likely the most time consuming part of this tool. If you are missing the type attribute it will insert and only ask for input if it is unclear whether it is a bulk vs. inclusive date. It uses daterangeparser to guess at the date to generate the normal attribute and will prompt for input when it can't figure it out. It will ouput the following:
-* The full text of the unitdate tag
-* The section it cannot resolve.
-
-You **must** provide the full normal attribute in the `yyyy-mm-dd/yyyy-mm-dd format`. If it is undated you can use `0000`. 
-
-***Note***: dates are broken into lists if they cannot be parsed on their own based on the typical case where someone entered a proper year and then comma and then another proper year. This was the most common case during development. However, it will result in the following: `Aug 20, 21, 25 1998` being interpreted as `2021-08-20/2021-08-20`, prompt for input on what `21` and `25` means, and `1998-01-01/1998-12-31`. That is then usually split into largest and smallest to `1998-01-01/2021-08-20` or something like that. Yes, this was preferrable to the alternative options. You made the human readable (debatable) but not machine processable data so you will have to fix it.
-
-Depending on the source data the output might be a bit scrambled, so after the file is normalized you should search using a text editor for `0000` to check that it wasn't put in the wrong place and for the current year (such as `2021`) which is what it defaults to if it can't parse the date range properly. Sometimes it has trouble with leap days. If it runs across trouble it may also default to the same beginning/ending date even if incorrect. **Always** check the date normal attributes you had to input as those are the most likely places where the error will show up. So keep notes or checkback on the terminal output to see where that happened. 
-
-FY is interpretted as state of Texas fiscal year of Sept previous year number-Aug listed year number.
-
-Some dates that have to get extra reconfiguration for daterangeparser to work will be printed on screen to show what was done.
-
-### taro2processor-generic.py ###
-A genericized version of the `taro2processor.py` for other archives that want to go through roughly the same process. Users will need to know their repo code. Experimental and may not work perfect so check your output.
-### fix_low-level_unitid.py
-Resolves an issue where TARO2 normalization had inserted the wrong attributes to lower level unitids.
-### marcXML_subjects.py
-Takes a dump of subject terms from SIRSI via MarcEdit API connection and removes 650/651 items. Used before mass importing Marc encoded subject terms.
-### parseExtent.py
-Used for normalizing errant extent types pre-import into ArchivesSpace.
 # ArchiveSnake tools
 These are scripts that rely on archivesnake to do API tasks. You will need to have that installed and configured to log into your system. 
 ## asnake_fixExtent.py
