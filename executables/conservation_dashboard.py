@@ -4,6 +4,7 @@ import pandas as pd
 import configparser
 import os
 import io
+import datetime
 
 SG.theme("Purple")
 
@@ -21,11 +22,24 @@ def treatment_text_parser(treatment_block):
         treatment_block_chunks = treatment_block.split("||")
         for treatment_block in treatment_block_chunks:
             treatment_list = treatment_block.split("|")
-            treatment_plan_dict[treatment_list[0]] = [treatment_list[1],
+            if len(treatment_list) < 2:
+                treatment_plan_dict[treatment_list[0]] = ["name", "date", "text", "#"]
+            else:
+                treatment_plan_dict[treatment_list[0]] = [treatment_list[1],
                                                       treatment_list[2],
                                                       treatment_list[3],
                                                       treatment_list[4]]
     return treatment_plan_dict
+
+def total_hours(treatment_plan_dict):
+    current_value = 0
+    for key in treatment_plan_dict.keys():
+        try:
+            new_value = float(treatment_plan_dict[key][-1])
+            current_value += new_value
+        except:
+            SG.popup_error(f"Error in treatment plan: {key}\nActual time: {treatment_plan_dict[key][-1]} not in number-compatible format")
+    return str(current_value)
 
 def convert_image(filename, maxsize=(400, 400), first=False):
     img = Image.open(filename)
@@ -274,7 +288,7 @@ layout_exams = [
         SG.Button("Add Condition to List"),
         SG.Push(),
         SG.Multiline(size=(40,5), key="-applicable_conditions-"),
-        SG.Input("", key="-condition_plan_list-")
+        SG.Input("", key="-condition_plan_list-", readonly=True, disabled_readonly_background_color="PeachPuff2")
     ],
     [
         SG.Push(),
@@ -287,7 +301,7 @@ layout_exams = [
         SG.Button("Add Treatment to List"),
         SG.Push(),
         SG.Multiline(key="-treatment_plan-", size=(40,5)),
-        SG.Input("", key="-treatment_plan_list-"),
+        SG.Input("", key="-treatment_plan_list-", readonly=True, disabled_readonly_background_color="PeachPuff2"),
     ],
     [
         SG.Text("Estimated treatment hours: "),
@@ -328,7 +342,7 @@ layout_treatments = [
         SG.Text("hrs")
     ],
     [
-        SG.Input("", key="-treatment_text_block-")
+        SG.Input("", key="-treatment_text_block-", disabled_readonly_background_color="PeachPuff2", readonly=True),
     ],
     # treatment type separated by ||, intraitem separated by |. [0] = treatment type [1] = notes, [2] = treated by [3] = date [4] = hours to complete
     [
@@ -455,7 +469,9 @@ layout = [
         SG.Push()
     ],
     [
-        SG.Button('Close')
+        SG.Button('Close'),
+        SG.Push(),
+        SG.Button("Generate New Conservation Workbook")
     ]
 ]
 
@@ -632,13 +648,19 @@ while True:
             Link_to_Catalog = new_df.loc[new_df['ConsID'] == ConsID, 'Link to Catalog'].values[0]
             Request_By = new_df.loc[new_df['ConsID'] == ConsID, 'Requested by'].values[0]
             Request_Date = new_df.loc[new_df['ConsID'] == ConsID, 'Request Date'].values[0]
+            if isinstance(Request_Date, datetime.datetime):
+                Request_Date = Request_Date.strftime('%Y-%m-%d')
             Request_Reason = new_df.loc[new_df['ConsID'] == ConsID, 'Request Reason'].values[0]
             Department = new_df.loc[new_df['ConsID'] == ConsID, 'Department'].values[0]
             Reviewed_By = new_df.loc[new_df['ConsID'] == ConsID, 'Rev. by'].values[0]
             Review_Date = new_df.loc[new_df['ConsID'] == ConsID, 'Review Date'].values[0]
+            if isinstance(Review_Date, datetime.datetime):
+                Review_Date = Review_Date.strftime('%Y-%m-%d')
             Review_Notes = new_df.loc[new_df['ConsID'] == ConsID, 'Review Notes'].values[0]
             Exam_By = new_df.loc[new_df['ConsID'] == ConsID, 'Exam By'].values[0]
             Exam_Date = new_df.loc[new_df['ConsID'] == ConsID, 'Exam Date'].values[0]
+            if isinstance(Exam_Date, datetime.datetime):
+                Exam_Date = Exam_Date.strftime('%Y-%m-%d')
             Priority = new_df.loc[new_df['ConsID'] == ConsID, 'High Priority?'].values[0]
             Dimensions = new_df.loc[new_df['ConsID'] == ConsID, 'Dimensions (cm)'].values[0]
             Extent = new_df.loc[new_df['ConsID'] == ConsID, 'Extent'].values[0]
@@ -650,7 +672,7 @@ while True:
             Condition_Issues = new_df.loc[new_df['ConsID'] == ConsID, 'Condition Issues'].values[0]
             window['-condition_plan_list-'].update(Condition_Issues)
             Treatment_Plan = new_df.loc[new_df['ConsID'] == ConsID, 'Treatment Plan'].values[0]
-            window['-treatment_plan_list-'].update(Treatment_Plan + "|")
+            window['-treatment_plan_list-'].update(Treatment_Plan)
             Number_of_Items = new_df.loc[new_df['ConsID'] == ConsID, 'Number of Items'].values[0]
             Estimated_Time = new_df.loc[new_df['ConsID'] == ConsID, 'Est. Time (hrs)'].values[0]
             Treatment = new_df.loc[new_df['ConsID'] == ConsID, 'Treatment'].values[0]
@@ -659,6 +681,8 @@ while True:
             Treated_By = new_df.loc[new_df['ConsID'] == ConsID, 'Treated by'].values[0]
             Total_Actual_Time = new_df.loc[new_df['ConsID'] == ConsID, 'Total Actual Time'].values[0]
             Date_Completed = new_df.loc[new_df['ConsID'] == ConsID, 'Date Completed'].values[0]
+            if isinstance(Date_Completed, datetime.datetime):
+                Date_Completed = Date_Completed.strftime('%Y-%m-%d')
             Treatment_Images = new_df.loc[new_df['ConsID'] == ConsID, 'Treatment Images'].values[0]
             print("values loaded")
             window['-header_info-'].update(f"{ConsID}: {Status}")
@@ -670,6 +694,7 @@ while True:
             window['index_key'].update(f"{An_Index}")
             window['-title-'].update(Title)
             window['-consID2-'].update(ConsID)
+            window['-official_consID-'].update(ConsID)
             window['-creator-'].update(Creator)
             window['-unique_identifier-'].update(Unique_ID)
             window['-Aspace-'].update(Link_to_Catalog)
@@ -707,21 +732,37 @@ while True:
 
             window['-estimated_treatment_hours-'].update(Estimated_Time)
             print(Treatment)
-            window['-treatment_drop-'].update(value=Treatment, size=(40,5))
-            if len(Treatment_Plan) > 0:
-                for item in Treatment_Plan:
-                    window['-treatment_plan-'].update(f"{item}", append=True)
+            Treatment_Plan_list = Treatment_Plan.split("|")
+            window['-treatment_drop-'].update(values=Treatment_Plan_list)
+            window['-treatment_drop-'].update(value=Treatment_Plan_list[0], size=(40,5))
+            window['-treatment_plan-'].update("")
+            if len(Treatment_Plan_list) > 0:
+                for item in Treatment_Plan_list:
+                    if item == "":
+                        Treatment_Plan_list.remove(item)
+                    else:
+                        window['-treatment_plan-'].update(f"{item}\n", append=True)
                 window['-treatment_plan-'].update("\n", append=True)
-            window['-treated_by-'].update(value=Treated_By)
-            window['-treatment_date-'].update(Date_Completed)
-            window['-treatment_notes-'].update(Treatment_Notes)
-            window['-actual_time-'].update(Total_Actual_Time)
+            if len(Treatment_Notes) > 0:
+                treatment_plan_dict = treatment_text_parser(Treatment_Notes)
+                my_key = list(treatment_plan_dict.keys())[0]
+                window['-treated_by-'].update(value=treatment_plan_dict[my_key][0])
+                window['-treatment_date-'].update(value=treatment_plan_dict[my_key][1][:10])
+                window['-treatment_notes-'].update(value=treatment_plan_dict[my_key][2])
+                window['-actual_time-'].update(value=treatment_plan_dict[my_key][3])
+            else:
+                window['-treated_by-'].update(value=Treated_By)
+                window['-treatment_date-'].update(Date_Completed[:10])
+                window['-actual_time-'].update(Total_Actual_Time)
+            window['-treatment_text_block-'].update(Treatment_Notes)
             window['-treatment_images-'].update(Treatment_Images)
+            window['-report_images_folder-'].update(Treatment_Images)
     if event == "-save-":
         print(An_Index)
         if values['index_key'] == "":
             print("load or create a record before trying to save")
         else:
+            window['-total_actual_time-'].update(total_hours(treatment_plan_dict))
             print("saving data")
             dimensions_text = ""
             if values['-dimensions_h-'] != "":
@@ -743,17 +784,17 @@ while True:
                 values['-title-'],
                 values['-unique_identifier-'],
                 values['-creator-'],
-                values['-created_year-'],
+                values['-created_year-'][:4],
                 values['-Aspace-'],
                 values['-requestor-'],
-                values['-request_date-'],
+                values['-request_date-'][:10],
                 values['-request_reason-'],
                 values['-request_dept-'],
                 values['-reviewed_by-'],
-                values['-reviewed_date-'],
+                values['-reviewed_date-'][:10],
                 values['-reviewed_notes-'],
                 values['-examined_by-'],
-                values['-examined_date-'],
+                values['-examined_date-'][:10],
                 values['-current_priority-'],
                 dimensions_text,
                 values['-extent-'],
@@ -770,8 +811,8 @@ while True:
                 values['-treatment_text_block-'],
                 str(quick_math),
                 values['-treated_by-'],
-                str(quick_math),
-                values['-treatment_date-'],
+                total_hours(treatment_plan_dict),
+                values['-treatment_date-'][:10],
                 values['-treatment_images-']
             ]
             writer = df.to_excel(values['-spreadsheet-'], sheet_name="Conservation Reports", index=False)
@@ -833,12 +874,27 @@ while True:
         window['-treatment_drop-'].update(values=Treatment_Plan)
     if event == "Update Treatment Notes":
         treatment_plan_dict = treatment_text_parser(values['-treatment_text_block-'])
-        treatment_plan_dict[values['-treatment_drop-']] = [values['-treated_by-'], values['-treatment_date-'], values['-treatment_notes-'], values['-actual_time-']]
+        treated_by = values['-treated_by-']
+        if treated_by == "":
+            treated_by = "Nobody"
+        treatment_date = values['-treatment_date-']
+        if treatment_date == "":
+            treatment_date = "1835-09-01"
+        treatment_notes = values['-treatment_notes-']
+        if treatment_notes == "":
+            treatment_notes = "No notes yet"
+        actual_time = values['-actual_time-']
+        if actual_time == "":
+            actual_time = "0"
+        new_list = [treated_by, treatment_date, treatment_notes, actual_time]
+        print(new_list)
+        treatment_plan_dict[values['-treatment_drop-']] = new_list
         temp_text = ""
         for key in treatment_plan_dict.keys():
             temp_text = f"{temp_text}{key}|{treatment_plan_dict[key][0]}|{treatment_plan_dict[key][1]}|{treatment_plan_dict[key][2]}|{treatment_plan_dict[key][3]}||"
         temp_text = temp_text[:-2]
         window['-treatment_text_block-'].update(temp_text)
+        window['-total_actual_time-'].update(total_hours(treatment_plan_dict))
     if event == "-treatment_drop-":
         if values['-treatment_drop-'] in treatment_plan_dict.keys() and treatment_plan_dict[values['-treatment_drop-']] != []:
             window['-treated_by-'].update(value=treatment_plan_dict[values['-treatment_drop-']][0])
@@ -846,11 +902,19 @@ while True:
             window['-treatment_notes-'].update(value=treatment_plan_dict[values['-treatment_drop-']][2])
             window['-actual_time-'].update(value=treatment_plan_dict[values['-treatment_drop-']][3])
         else:
-            treatment_plan_dict[values['-treatment_drop-']] = []
-            window['-treatment_date-'].update(value='')
-            window['-treatment_notes-'].update(value='')
-            window['-actual_time-'].update(value='')
+            treatment_plan_dict[values['-treatment_drop-']] = ['placeholder','placeholder','placeholder','placeholder']
+            window['-treated_by-'].update(value="Nobody")
+            window['-treatment_date-'].update(value='1835-09-01')
+            window['-treatment_notes-'].update(value='No text yet')
+            window['-actual_time-'].update(value='0')
         print(treatment_plan_dict)
+    if event == "Generate New Conservation Workbook":
+        df_list = []
+        for item in my_config['spreadsheet_columns'].items():
+            df_list.append(item[0])
+        df = pd.DataFrame(columns=df_list)
+        writer = df.to_excel("New_ConservationReportingSS_WIP.xlsx", index=False, sheet_name="Conservation Reports")
+        SG.popup("generated new conservation workbook")
     if event == "Close" or event == SG.WIN_CLOSED:
         break
 window.close()
