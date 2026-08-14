@@ -3,6 +3,7 @@ import PySimpleGUI as SG
 import requests
 from datetime import datetime
 from pdfme import build_pdf
+import configparser
 
 my_icon64 = b'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'
 
@@ -26,6 +27,37 @@ space_dict = {'LittleMS': 2.5,
               "Tall Volume Standard": 0.0,
               "Top of Shelf": 12.0,
               "Unavailable for standard use": 0.0}
+eligible_list = ['RS', 'MS', 'LittleMS', 'no value']
+
+def make_dict_from_config(config_section):
+    if values['-config_file-'] != "":
+        my_config = configparser.ConfigParser()
+        my_config.optionxform = lambda option: option
+        my_config.read(values['-config_file-'])
+        config_dict = {}
+        for item in my_config[config_section].items():
+            #see if you can make this a number, if not store as a text-based value
+            try:
+                config_dict[item[0]] = float(item[1])
+            except:
+                config_dict[item[0]] = item[1]
+        return config_dict
+    else:
+        window['-OUTPUT-'].update("need to give a filepath to config file\n", append=True)
+        return
+
+def make_list_from_config(config_section):
+    if values['-config_file-'] != "":
+        my_config = configparser.ConfigParser()
+        my_config.optionxform = lambda option: option
+        my_config.read(values['-config_file-'])
+        config_list = []
+        for item in my_config[config_section].items():
+            config_list.append(item[0])
+        config_list.sort()
+        return config_list
+    else:
+        window['-OUTPUT-'].update("need to give a filepath to config file\n", append=True)
 
 default_location = {'jsonmodel_type': 'container_location',
                     'ref': 'something',
@@ -43,14 +75,37 @@ document_perPage = [{'pages': '1:1000:2', 'style': {'margin': [60, 100, 60, 60]}
 #to calculate storage on a single shelf
 def storage_shelf(item):
     aggregate = 0
-    eligible_list = ['RS', 'MS', 'LittleMS', 'no value', "Standard Width", "Narrow Width"]
+    space_dict = {'LittleMS': 2.5,
+                  "MS": 5.0,
+                  "RS": 13.0,
+                  "no value": 0.0,
+                  "Art Rack": 0.0,
+                  "Card Cabinet": 0.0,
+                  "Electronic records": 0.0,
+                  "GemTrac": 0.0,
+                  "Library Materials": 0.0,
+                  "Map drawer": 0.0,
+                  "Narrow Width": 28.0,
+                  "Offsite storage": 0.0,
+                  "OS Deep Shelving": 0.0,
+                  "OS Narrow Width": 0.0,
+                  "OS Standard Width": 0.0,
+                  "Standard Width": 40.0,
+                  "Tall Volume Narrow": 0.0,
+                  "Tall Volume Standard": 0.0,
+                  "Top of Shelf": 12.0,
+                  "Unavailable for standard use": 0.0}
+    storage_eligible_list = ['RS', 'MS', 'LittleMS', 'no value', "Standard Width", "Narrow Width"]
+    if values['-config_use-'] is True:
+        storage_eligible_list = make_list_from_config("storage_eligible_list")
+        space_dict = make_dict_from_config("space_dictionary")
     if item['location_profile'] == "no value":
         item['location_profile'] = "Standard Width"
-    if item['location_profile'] in eligible_list:
+    if item['location_profile'] in storage_eligible_list:
         outlier = False
         space = space_dict[item['location_profile']]
         for container in item['top_containers']:
-            if container["containers_container_profile"] in eligible_list:
+            if container["containers_container_profile"] in storage_eligible_list:
                 space = space - space_dict[container["containers_container_profile"]]
             else:
                 outlier = True
@@ -58,7 +113,7 @@ def storage_shelf(item):
             return "\tUnable to calculate free space\n"
         if outlier is False:
             if space >= 2.5:
-                return f"\tAvailable space {str(space/12)[:4]} cubic ft.\n"
+                return f"\tAvailable space {str(space)} linear inches.\n"
             else:
                 return ""
     else:
@@ -66,10 +121,33 @@ def storage_shelf(item):
 
 #to manipulate data and calculate available storage
 def storage_space(location_dictionary):
+    eligible_list = ['RS', 'MS', 'LittleMS', 'no value']
+    space_dict = {'LittleMS': 2.5,
+                  "MS": 5.0,
+                  "RS": 13.0,
+                  "no value": 0.0,
+                  "Art Rack": 0.0,
+                  "Card Cabinet": 0.0,
+                  "Electronic records": 0.0,
+                  "GemTrac": 0.0,
+                  "Library Materials": 0.0,
+                  "Map drawer": 0.0,
+                  "Narrow Width": 28.0,
+                  "Offsite storage": 0.0,
+                  "OS Deep Shelving": 0.0,
+                  "OS Narrow Width": 0.0,
+                  "OS Standard Width": 0.0,
+                  "Standard Width": 40.0,
+                  "Tall Volume Narrow": 0.0,
+                  "Tall Volume Standard": 0.0,
+                  "Top of Shelf": 12.0,
+                  "Unavailable for standard use": 0.0}
+    if values['-config_use-'] is True:
+        eligible_list = make_list_from_config("eligible_list")
+        space_dict = make_dict_from_config("space_dictionary")
     new_space_dictionary = {}
     aggregate = 0
     for key in location_dictionary:
-        eligible_list = ['RS', 'MS', 'LittleMS', 'no value']
         location_in_room = location_dictionary[key]['location_in_room']
         if "Range" in location_in_room and "Section" in location_in_room and "Shelf" in location_in_room:
             location_profile = location_dictionary[key]['location_profile']
@@ -204,30 +282,55 @@ def dict_converter(dataframe):
         location_floor = list(set(location_floor))
         location_floor.append("")
         location_floor.sort()
-        window['-FLOOR-'].update(values=location_floor)
+        window['-FLOOR-'].update(values=location_floor, size=(25,5))
+    if values['-FLOOR2-'] == "":
+        location_floor = list(set(location_floor))
+        location_floor.append("")
+        location_floor.sort()
+        window['-FLOOR2-'].update(values=location_floor, size=(25,5))
     if values['-ROOM-'] == "":
         location_room = list(set(location_room))
         location_room.append("")
         location_room.sort()
-        window['-ROOM-'].update(values=location_room)
+        window['-ROOM-'].update(values=location_room, size=(25,5))
+    if values['-ROOM2-'] == "":
+        location_room = list(set(location_room))
+        location_room.append("")
+        location_room.sort()
+        window['-ROOM2-'].update(values=location_room, size=(25,5))
+    if values['-RANGE_START-'] == "":
+        location_range = list(set(location_range))
+        location_range.append("")
+        location_range.sort()
+        window['-RANGE_START-'].update(values=location_range, size=(25,5))
+        window['-RANGE_END-'].update(values=location_range, size=(25,5))
     if values['-RANGE-'] == "":
         location_range = list(set(location_range))
         location_range.append("")
         location_range.sort()
-        window['-RANGE-'].update(values=location_range)
-        window['-RANGE_RANGE-'].update(values=location_range)
+        window['-RANGE-'].update(values=location_range, size=(25,5))
+    if values['-SECTION_START-'] == "":
+        location_section = list(set(location_section))
+        location_section.append("")
+        location_section.sort()
+        window['-SECTION_START-'].update(values=location_section, size=(25,5))
+        window['-SECTION_END-'].update(values=location_section, size=(25,5))
     if values['-SECTION-'] == "":
         location_section = list(set(location_section))
         location_section.append("")
         location_section.sort()
-        window['-SECTION-'].update(values=location_section)
-        window['-RANGE_SECTION-'].update(values=location_section)
+        window['-SECTION-'].update(values=location_section, size=(25,5))
+    if values['-SHELF_START-'] == "":
+        location_shelf = list(set(location_shelf))
+        location_shelf.append("")
+        location_shelf.sort()
+        window['-SHELF_START-'].update(values=location_shelf, size=(25,5))
+        window['-SHELF_END-'].update(values=location_shelf, size=(25,5))
     if values['-SHELF-'] == "":
         location_shelf = list(set(location_shelf))
         location_shelf.append("")
         location_shelf.sort()
-        window['-SHELF-'].update(values=location_shelf)
-        window['-RANGE_SHELF-'].update(values=location_shelf)
+        window['-SHELF-'].update(values=location_shelf, size=(25,5))
     return location_dictionary, item_dictionary, item_barcode_dictionary
 
 SG.theme("Purple")
@@ -256,33 +359,8 @@ bottom_middle_layout = [
     ],
 
 ]
-bottom_right_layout = [
-    [
-        SG.Push(),
-        SG.Text("The Buttons"),
-        SG.Push()
-    ],
-    [
-        SG.Button("Filter By Location Coordinates", size=(25, 1), tooltip="use to filter locations based on stacks coordinates.\n\nCan be used multiple times to refine results\n\nto limit number of range/section/shelf options, search first by room/floor and refine from there"),
-        SG.Push(),
-    ],
-    [
-        SG.Button("Filter by Location Barcode", size=(25, 1), tooltip="use to find location inventory data by searching the barcode.\n\nrequires full spreadsheet to be loaded"),
-        SG.Push(),
-    ],
-    [
-        SG.Button("Filter by Container Barcode", size=(25, 1), tooltip="use to find where a container is supposed to go based on its barcode.\n\nrequires full spreadsheet to be loaded"),
-        SG.Push(),
-    ],
-    [
-        SG.Button("Reload Spreadsheet", size=(25, 1), tooltip="Reloads the spreadsheet to reset values, needs to be pressed twice to clear all values.\n\nalso unlocks some fields from read-only status"),
-        SG.Push(),
-    ],
-    [
-        SG.Button("Close", size=(25, 1), tooltip="will close this program"),
-    ],
-]
-layout = [
+
+admin_layout = [
     [
         SG.Push(),
         SG.Text("Administrative details", font=("Calibri", 18), text_color="dark green"),
@@ -291,196 +369,282 @@ layout = [
     [
         SG.Push(),
         SG.Text("REQUIRED for updating/editing information", text_color="dark red"),
-        SG.Text("Open login information"),
-        SG.Radio("Yes", enable_events=True, key="-LOGIN_YES-", group_id="-login-", default=False),
-        SG.Radio("No", enable_events=True, key="-LOGIN_NO-", group_id="-login-", default=True),
-        SG.Button("Update", size=(8, 1))
+    ],
+    [
+        SG.Checkbox("Enable edit", key="-ENABLE_EDIT-", enable_events=True),
+        SG.Push(),
     ],
     [
         SG.Push(),
-        SG.Text("ArchivesSpace API address:", key="-ADDRESS-", visible=False),
-        SG.Input(size=(50, 1), key="-API_URL-", default_text="enter api address here", visible=False)
+        SG.Text("ArchivesSpace API address:", key="-ADDRESS-"),
+        SG.Input(size=(50, 1), key="-API_URL-", default_text="enter api address here")
     ],
     [
         SG.Push(),
-        SG.Text("ArchivesSpace username:", key="-USERNAME-", visible=False),
-        SG.Input(size=(50, 1), key="-API_USERNAME-", visible=False)
+        SG.Text("ArchivesSpace username:", key="-USERNAME-"),
+        SG.Input(size=(50, 1), key="-API_USERNAME-")
     ],
     [
         SG.Push(),
-        SG.Text("ArchivesSpace password:", key="-PASSWORD-", visible=False),
-        SG.Input(size=(50, 1), key="-API_PASSWORD-", password_char="#", visible=False)
+        SG.Text("ArchivesSpace password:", key="-PASSWORD-"),
+        SG.Input(size=(50, 1), key="-API_PASSWORD-", password_char="#")
     ],
     [
         SG.Push(),
-        SG.Button("Test Login", size=(8, 1), key="-TEST_LOGIN-", visible=False),
+        SG.Button("Test Login", size=(8, 1), key="-TEST_LOGIN-"),
         SG.Push()
     ],
-    [
-        SG.Text("Session Token:"),
-        SG.Push(),
-        SG.Input("", key="-SESSION_TOKEN-", readonly=True, size=(65, 1), disabled_readonly_background_color="PeachPuff2"),
-    ],
+]
+
+circulation_layout = [
     [
         SG.Push(),
-        SG.Text("REQUIRED", text_color="dark red"),
-        SG.Text("Location holdings report spreadsheet: "),
-        SG.In(size=(50, 1), enable_events=True, key="-LOCATIONS-"),
-        SG.FileBrowse(size=(8, 1), file_types=(("comma-separate values", "*.csv"), ("excel spreadsheet", "*.xlsx")))
-    ],
-    [
-        SG.Push(),
-        SG.Button("Load Spreadsheet"),
-        SG.Push()
-    ],
-    [
-        SG.HorizontalSeparator()
-    ],
-    [
-        SG.Text("Open...", font=("Calibri", 18), text_color="dark green"),
-        SG.Push(),
-        SG.Radio("Circulation", key="-CONTAINER_MANAGEMENT-", font=("Calibri", 18), text_color="dark green", group_id="-sections-", enable_events=True),
-        SG.Radio("Inventory management", key="-INVENTORY_MANAGEMENT-", font=("Calibri", 18), text_color="dark green", group_id="-sections-", enable_events=True),
-        SG.Radio("Container search", key="-CONTAINER_CHECK-", font=("Calibri", 18), text_color="dark green", group_id="-sections-", enable_events=True),
-        SG.Radio("Find where stuff goes", key="-STACKS_LOCATIONS-", font=("Calibri", 18), text_color="dark green", group_id="-sections-", enable_events=True),
-    ],
-    [
-        SG.Push(),
-        SG.Radio("Checkout to reference", visible=False, key="-REFERENCE_CHECKOUT-", group_id="-circulation-"),
-        SG.Radio("Checkout", visible=False, key="-CHECKOUT-", group_id="-circulation-"),
-        SG.Radio("Return", visible=False, key="-RETURN-", group_id="-circulation-"),
-        SG.Radio("Transfer", visible=False, key="-TRANSFER-", group_id="-circulation-"),
+        SG.Text("Circulation management", font=("Calibri", 18), text_color="dark green"),
         SG.Push()
     ],
     [
         SG.Push(),
-        SG.Text("Container barcode: ", key="-BOX_BARCODE_TEXT-", visible=False),
-        SG.In("", key="-BOX_BARCODE-", enable_events=True, visible=False),
+        SG.Text("You MUST Login In to the ArchivesSpace API and check enable edit for circulation to work", text_color="dark red"),
     ],
     [
         SG.Push(),
-        SG.Text("Location barcode: ", key="-CIRCULATION_LOCATION_TEXT-", visible=False),
-        SG.In("", key="-CIRCULATION_LOCATION-", visible=False, enable_events=True),
+        SG.Text("Container barcode: ", key="-BOX_BARCODE_TEXT-"),
+        SG.In("", key="-BOX_BARCODE-", enable_events=True),
     ],
     [
         SG.Push(),
-        SG.Button("Circulate Container", size=(50, 1), enable_events=True, key="-CIRCULATE_CONTAINER-", visible=False),
+        SG.Text("New Location barcode: ", key="-CIRCULATION_LOCATION_TEXT-"),
+        SG.In("", key="-CIRCULATION_LOCATION-", enable_events=True),
+    ],
+    [
+        SG.Push(),
+        SG.Button("Circulate Container", size=(50, 1), enable_events=True, key="-CIRCULATE_CONTAINER-"),
         SG.Push()
     ],
     [
-        SG.Checkbox("Enable edit", key="-ENABLE_EDIT-", visible=False, enable_events=True),
         SG.Push(),
+        SG.Radio("Checkout to reference", key="-REFERENCE_CHECKOUT-", group_id="-circulation-"),
+        SG.Radio("Checkout", key="-CHECKOUT-", group_id="-circulation-"),
+        SG.Radio("Return", key="-RETURN-", group_id="-circulation-"),
+        SG.Radio("Transfer", key="-TRANSFER-", group_id="-circulation-"),
+        SG.Push()
+    ],
+]
+
+inventory_layout = [
+    [
+        SG.Push(),
+        SG.Text("Inventory Management", font=("Calibri", 18), text_color="dark green"),
+        SG.Push()
+    ],
+    [
+        SG.Text("For working with location coordinates, first filter by Floor/Room", text_color="Red", key="-FILTER_WARNING-", enable_events=True),
+        SG.Push(),
+        SG.Text(" ", key="-INVENTORY_RANGE_START-", enable_events=True),
+        SG.Button("Filter by Floor/Room", key="-filter_coordinates_inventory-", enable_events=True),
+        SG.Text("Floor: ", enable_events=True),
+        SG.Combo(values=[''], default_value='', key="-FLOOR2-", enable_events=True, size=(25,5)),
+        SG.Text("Room: ", enable_events=True),
+        SG.Combo(values=[''], default_value="", key="-ROOM2-", enable_events=True, size=(25,5)),
     ],
     [
         SG.Push(),
-        SG.Text("Location URI: ", key="-LOCATION_URI_TEXT-", visible=False, enable_events=True),
-        SG.Input(size=(50, 1), key="-LOCATION_URI-", visible=False, readonly=True, disabled_readonly_background_color="PeachPuff2"),
-    ],
-    [
-        SG.Push(),
-        SG.Text("Location Profile: ", key="-LOCATION_PROFILE_TEXT-", enable_events=True, visible=False),
-        SG.Input(size=(50, 1), enable_events=True, key="-LOCATION_PROFILE-", readonly=True, disabled_readonly_background_color="PeachPuff2", visible=False),
-    ],
-    [
-        SG.Push(),
-        SG.Text("Updated location profile to...?", visible=False, key="-LOCATION_PROFILE_TEXT-", enable_events=True),
-        SG.Combo(values=["", "GemTrac", "Narrow Width", "Standard Width"], visible=False, key="-LOCATION_PROFILE_DROP-", enable_events=True),
-        SG.Button("Update location profile", size=(19, 1), visible=False, key="-LOCATION_PROFILE_BUTTON-", enable_events=True),
-    ],
-    [
-        SG.Push(),
-        SG.Text("Location barcode: ", key="-LOCATION_BARCODE_TEXT-", visible=False, enable_events=True),
-        SG.Input(size=(50, 1), visible=False, enable_events=True, key="-LOCATION_BARCODE-", disabled_readonly_background_color="PeachPuff2"),
-        SG.Button("Update location barcode", key="-LOCATION_BARCODE_BUTTON-", size=(19, 1), visible=False, enable_events=True),
-    ],
-    [
-        SG.Push(),
-        SG.Text("Containers at location: ", key="-TOP_CONTAINERS_TEXT-", visible=False, enable_events=True),
-        SG.Combo(values=[""], default_value="", key="-TOP_CONTAINERS-", enable_events=True, visible=False),
-        SG.Text("Container barcode: ", key="-TOP_CONTAINER_BARCODE_TEXT-", visible=False, enable_events=True),
-        SG.Input(size=(50, 1), enable_events=True, key="-TOP_CONTAINER_BARCODE-", disabled_readonly_background_color="PeachPuff2", visible=False),
-        SG.Button("Update container barcode", key="-TOP_CONTAINER_BARCODE_BUTTON-", visible=False, size=(19, 1), enable_events=True),
-    ],
-    [
-        SG.Text("For working with location coordinates, first filter by Floor/Room", text_color="Red", key="-FILTER_WARNING-", enable_events=True, visible=False),
-        SG.Push(),
-        SG.Text(" ", key="-INVENTORY_RANGE_START-", visible=False, enable_events=True),
-        SG.Text("Floor: ", key="-FLOOR_KEY-", visible=False, enable_events=True),
-        SG.Combo(values=[''], default_value='', key="-FLOOR-", visible=False, enable_events=True),
-        SG.Text("Room: ", key="-ROOM_KEY-", visible=False, enable_events=True),
-        SG.Combo(values=[''], default_value="", key="-ROOM-", visible=False, enable_events=True),
-    ],
-    [
-        SG.Checkbox("Inventory range check", key="-INVENTORY_RANGE_CHECK-", visible=False, enable_events=True,
-                    tooltip="Check this box to enable pulling all of the data for a set of shelving.\nNote that shelving must all be on the same floor/stack and end must not precede beginning\nMust not begin and end with same location"),
-        SG.Push(),
-        SG.Text("Range: ", key="-RANGE_TEXT-", visible=False, enable_events=True),
-        SG.Combo(values=[''], key="-RANGE-", visible=False, enable_events=True),
-        SG.Text("Section: ", key="-SECTION_TEXT-", visible=False, enable_events=True),
-        SG.Combo(values=[''], key="-SECTION-", visible=False, enable_events=True),
-        SG.Text("Shelf: ", key="-SHELF_TEXT-", visible=False, enable_events=True),
-        SG.Combo(values=[''], key="-SHELF-", visible=False, enable_events=True),
+        SG.Text("Range: ", enable_events=True),
+        SG.Combo(values=[''], key="-RANGE_START-", enable_events=True, size=(25,5)),
+        SG.Text("Section: ", enable_events=True),
+        SG.Combo(values=[''], key="-SECTION_START-", enable_events=True, size=(25,5)),
+        SG.Text("Shelf: ", enable_events=True),
+        SG.Combo(values=[''], key="-SHELF_START-", enable_events=True, size=(25,5)),
         #SG.Push()
     ],
     [
-        SG.Checkbox("Whole room", key="-WHOLE_ROOM-", visible=False, enable_events=True),
-        SG.Button("Generate Shelf list", key="-SHELF_LIST-", visible=False),
+        SG.Checkbox("Whole room", key="-WHOLE_ROOM-", enable_events=True),
+        SG.Button("Generate Shelf list", key="-SHELF_LIST-"),
         SG.Push(),
-        SG.Text("Range end", key="-INVENTORY_RANGE_END-", visible=False),
-        SG.Text("Range: ", key="-RANGE_RANGE_TEXT-", visible=False),
-        SG.Combo(values=[''], key="-RANGE_RANGE-", visible=False),
-        SG.Text("Section: ", key="-RANGE_SECTION_TEXT-", visible=False),
-        SG.Combo(values=[''], default_value='', key="-RANGE_SECTION-", visible=False),
-        SG.Text("Shelf: ", key="-RANGE_SHELF_TEXT-", visible=False),
-        SG.Combo(values=[''], key="-RANGE_SHELF-", visible=False),
+        SG.Text("Range end"),
+        SG.Text("Range: "),
+        SG.Combo(values=[''], key="-RANGE_END-", size=(25,5)),
+        SG.Text("Section: "),
+        SG.Combo(values=[''], default_value='', key="-SECTION_END-", size=(25,5)),
+        SG.Text("Shelf: "),
+        SG.Combo(values=[''], key="-SHELF_END-", size=(25,5)),
     ],
     [
         SG.Push(),
-        SG.Checkbox("Also generate PDF", key="-GEN_PDF-", visible=False, enable_events=True),
-        SG.Checkbox("Also generate spreadsheet", key="-GEN_DF-", visible=False, enable_events=True),
+        SG.Checkbox("Also generate PDF", key="-GEN_PDF-", enable_events=True),
+        SG.Checkbox("Also generate spreadsheet", key="-GEN_DF-", enable_events=True),
     ],
     [
         SG.Text("Inventory range uses auto incrementing and cannot handle large numbers or text by default, include options below include EVERYTHING of that type\nUse Include Bonus for Bonus shelving, Include North/South/East/West for ranges against walls, Include 'atypical' to include locations", key="-WARNING-", visible=False, enable_events=True, text_color="red"),
     ],
     [
         SG.Push(),
-        SG.Checkbox("Include Bonus shelving", key="-INCL_BONUS-", visible=False, enable_events=True),
-        SG.Checkbox("Include North/South/East/West", key="-INCL_DIRECTIONS-", visible=False, enable_events=True),
-        SG.Checkbox("Include atypical", key="-ATYPICAL-", visible=False, enable_events=True),
+        SG.Checkbox("Include Bonus shelving", key="-INCL_BONUS-", enable_events=True),
+        SG.Checkbox("Include North/South/East/West", key="-INCL_DIRECTIONS-", enable_events=True),
+        SG.Checkbox("Include atypical", key="-ATYPICAL-", enable_events=True),
     ],
     [
         SG.Push(),
-        SG.Text("Needed linear inches: ", key="-INCHES_TEXT-", visible=False),
-        SG.In("", key="-INCHES-", visible=False),
+        SG.Text("Needed linear inches: ", key="-INCHES_TEXT-"),
+        SG.In("", key="-INCHES-"),
     ],
     [
-        SG.Button("Calculate available Storage", visible=False, key="-CALCULATE_STORAGE-"),
+        SG.Button("Calculate available Storage", key="-CALCULATE_STORAGE-"),
         SG.Push(),
-        SG.Button("Find me storage", visible=False, key="-FIND_ME_STORAGE-"),
+        SG.Button("Find me storage", key="-FIND_ME_STORAGE-"),
     ],
+]
+
+container_layout = [
     [
         SG.Push(),
-        SG.Text("Search by prefix (i.e. 2013/002 or 2-22/", key="-CONTAINER_SEARCH_TEXT-", visible=False),
-        SG.In("", key="-CONTAINER_SEARCH-", visible=False),
-        SG.Button("Find me", visible=False, key="-FIND_ME1-"),
-    ],
-    [
-        SG.Push(),
-        SG.Text("Search by TX#", key="-TX_TEXT-", visible=False),
-        SG.In("", key="-TX-", visible=False),
-        SG.Button("Find me", visible=False, key="-FIND_ME2-"),
+        SG.Text("Container Search/Collection-Specific Shelf List", font=("Calibri", 18), text_color="dark green"),
+        SG.Push()
     ],
     [
         SG.Push(),
+        SG.Text("Search by prefix (i.e. 2013/002 or 2-22/", key="-CONTAINER_SEARCH_TEXT-"),
+        SG.In("", key="-CONTAINER_SEARCH-"),
+        SG.Button("Find me", key="-FIND_ME1-"),
     ],
     [
         SG.Push(),
-        SG.Pane([SG.Column(bottom_left_layout), SG.Column(bottom_middle_layout), SG.Column(bottom_right_layout)], orientation='h', expand_x=True, expand_y=True),
+        SG.Text("Search by TX#", key="-TX_TEXT-"),
+        SG.In("", key="-TX-"),
+        SG.Button("Find me", key="-FIND_ME2-"),
+    ],
+]
+
+reshelving_layout = [
+    [
+        SG.Push(),
+        SG.Text("Individual Shelf listing/Individual Container location search", font=("Calibri", 18), text_color="dark green"),
+        SG.Push()
+    ],
+    [
+        SG.Push(),
+        SG.Text("Location URI: ", key="-LOCATION_URI_TEXT-", enable_events=True),
+        SG.Input(size=(50, 1), key="-LOCATION_URI-", readonly=True, disabled_readonly_background_color="PeachPuff2"),
+    ],
+    [
+        SG.Push(),
+        SG.Text("Location Profile: ", key="-LOCATION_PROFILE_TEXT-", enable_events=True),
+        SG.Input(size=(50, 1), enable_events=True, key="-LOCATION_PROFILE-", readonly=True, disabled_readonly_background_color="PeachPuff2"),
+    ],
+    [
+        SG.Push(),
+        SG.Text("You MUST Login In to the ArchivesSpace API and check enable edit for Updates to work", text_color="dark red"),
+    ],
+    [
+        SG.Push(),
+        SG.Text("Updated location profile to...?", key="-LOCATION_PROFILE_TEXT-", enable_events=True),
+        SG.Combo(values=["", "GemTrac", "Narrow Width", "Standard Width"], key="-LOCATION_PROFILE_DROP-", enable_events=True),
+        SG.Button("Update location profile", size=(19, 1), key="-LOCATION_PROFILE_BUTTON-", enable_events=True),
+    ],
+    [
+        SG.Push(),
+        SG.Text("Location barcode: ", key="-LOCATION_BARCODE_TEXT-", enable_events=True),
+        SG.Input(size=(50, 1), enable_events=True, key="-LOCATION_BARCODE-", disabled_readonly_background_color="PeachPuff2"),
+        SG.Button("Update location barcode", key="-LOCATION_BARCODE_BUTTON-", size=(19, 1), enable_events=True),
+    ],
+    [
+        SG.Push(),
+        SG.Text("Containers at location: ", key="-TOP_CONTAINERS_TEXT-", enable_events=True),
+        SG.Combo(values=[""], default_value="", key="-TOP_CONTAINERS-", enable_events=True, size=(15, 5)),
+        SG.Text("Container barcode: ", key="-TOP_CONTAINER_BARCODE_TEXT-", enable_events=True),
+        SG.Input(size=(50, 1), enable_events=True, key="-TOP_CONTAINER_BARCODE-", disabled_readonly_background_color="PeachPuff2"),
+        SG.Button("Update container barcode", key="-TOP_CONTAINER_BARCODE_BUTTON-", size=(19, 1), enable_events=True),
+    ],
+    [
+        SG.Text("For working with location coordinates, first filter by Floor/Room", text_color="DarkRed", key="-FILTER_WARNING-", enable_events=True),
+        SG.Push(),
+        SG.Text(" ", key="-INVENTORY_RANGE_START-", enable_events=True),
+        SG.Text("Floor: ", key="-FLOOR_KEY-", enable_events=True),
+        SG.Combo(values=[''], default_value='', key="-FLOOR-", enable_events=True, size=(25,5)),
+        SG.Text("Room: ", key="-ROOM_KEY-", enable_events=True),
+        SG.Combo(values=[''], default_value="", key="-ROOM-", enable_events=True, size=(25,5)),
+    ],
+    [
+        SG.Push(),
+        SG.Text("Range: ", key="-RANGE_TEXT-", enable_events=True),
+        SG.Combo(values=[''], key="-RANGE-", enable_events=True, size=(25,5)),
+        SG.Text("Section: ", key="-SECTION_TEXT-", enable_events=True),
+        SG.Combo(values=[''], key="-SECTION-", enable_events=True, size=(25,5)),
+        SG.Text("Shelf: ", key="-SHELF_TEXT-", enable_events=True),
+        SG.Combo(values=[''], key="-SHELF-", enable_events=True, size=(25,5)),
+        #SG.Push()
+    ],
+    [
+        SG.Push(),
+        SG.Button("Filter By Location Coordinates", size=(25, 1), tooltip="use to filter locations based on stacks coordinates.\n\nCan be used multiple times to refine results\n\nto limit number of range/section/shelf options, search first by room/floor and refine from there"),
+        SG.Push(),
+        SG.Button("Filter by Location Barcode", size=(25, 1), tooltip="use to find location inventory data by searching the barcode.\n\nrequires full spreadsheet to be loaded"),
+        SG.Push(),
+        SG.Button("Filter by Container Barcode", size=(25, 1), tooltip="use to find where a container is supposed to go based on its barcode.\n\nrequires full spreadsheet to be loaded"),
+        SG.Push(),
+    ],
+]
+
+layout = [
+    [
+        SG.Push(),
+        SG.Text("Inventory Management Dashboard", text_color="darkblue", font=("Arial", 14, "bold")),
+        SG.Push(),
+    ],
+    [
+        SG.Push(),
+        SG.Text("Session Token:"),
+        SG.Input("", key="-SESSION_TOKEN-", readonly=True, size=(65, 1), disabled_readonly_background_color="PeachPuff2"),
+    ],
+    [
+        SG.Push(),
+        SG.Text("REQUIRED", text_color="dark red"),
+        SG.Text("Location holdings report spreadsheet: "),
+        SG.In(size=(53, 1), enable_events=True, key="-LOCATIONS-"),
+        SG.FileBrowse(size=(8, 1), file_types=(("comma-separate values", "*.csv"), ("excel spreadsheet", "*.xlsx")))
+    ],
+    [
+        SG.Push(),
+        SG.Checkbox("Use config file", key="-config_use-"),
+        SG.In(size=(53, 1), enable_events=True, key="-config_file-"),
+        SG.FileBrowse(size=(8, 1), file_types=(("config file", "*.cfg"), ("text file", "*.txt")))
+    ],
+    [
+        SG.Push(),
+        SG.Button("Load Spreadsheet"),
+        SG.Push(),
+        SG.Button("Reload Spreadsheet", tooltip="Reloads the spreadsheet to reset values, needs to be pressed twice to clear all values.\n\nalso unlocks some fields from read-only status"),
+        SG.Push(),
+    ],
+    [
+        SG.HorizontalSeparator()
+    ],
+    [
+        SG.Push(),
+        SG.TabGroup([
+            [
+                SG.Tab("Administrative Details", admin_layout),
+                SG.Tab("Circulation", circulation_layout),
+                SG.Tab("Inventory Management", inventory_layout),
+                SG.Tab("Container search", container_layout),
+                SG.Tab("Find where stuff goes", reshelving_layout),
+            ]
+        ], key='-tab_group-', expand_x=True, expand_y=True),
+        SG.Push()
+    ],
+    [
+        SG.Push(),
+        SG.Button("Close", size=(30, 1), tooltip="will close this program"),
+        SG.Push()
+    ],
+    [
+        SG.Push(),
+        SG.Pane([SG.Column(bottom_left_layout), SG.Column(bottom_middle_layout)], orientation='h', expand_x=True, expand_y=True),
         SG.Push()
     ],
 ]
 
-window = SG.Window(title="Inventory Management GUI",
+window = SG.Window(title="Inventory Management Dashboard",
                    layout=layout,
                    icon=my_icon64)
 
@@ -498,22 +662,6 @@ while True:
     variables_dict['-CIRCULATION_LOCATION-'] = values['-CIRCULATION_LOCATION-']
     if values['-INCHES-'] == "":
         values['-INCHES-'] = "0"
-    if values['-LOGIN_YES-'] is True:
-        window['-ADDRESS-'].update(visible=True)
-        window['-API_URL-'].update(visible=True)
-        window['-USERNAME-'].update(visible=True)
-        window['-API_USERNAME-'].update(visible=True)
-        window['-PASSWORD-'].update(visible=True)
-        window['-API_PASSWORD-'].update(visible=True)
-        window['-TEST_LOGIN-'].update(visible=True)
-    if values['-LOGIN_NO-'] is True:
-        window['-ADDRESS-'].update(visible=False)
-        window['-API_URL-'].update(visible=False)
-        window['-USERNAME-'].update(visible=False)
-        window['-API_USERNAME-'].update(visible=False)
-        window['-PASSWORD-'].update(visible=False)
-        window['-API_PASSWORD-'].update(visible=False)
-        window['-TEST_LOGIN-'].update(visible=False)
     variables_dict['circulation'] = ""
     if values['-REFERENCE_CHECKOUT-'] is True:
         variables_dict['circulation'] = "reference"
@@ -540,10 +688,15 @@ while True:
         window['-RANGE-'].update(values=[''])
         window['-SECTION-'].update(values=[''])
         window['-SHELF-'].update(values=[''])
-        window['-RANGE_RANGE-'].update(values=[''])
-        window['-RANGE_SECTION-'].update(values=[''])
-        window['-RANGE_SHELF-'].update(values=[''])
-        window['-TOP_CONTAINERS-'].update(values=[''])
+        window['-FLOOR2-'].update(values=[''])
+        window['-ROOM2-'].update(values=[''])
+        window['-RANGE_START-'].update(values=[''])
+        window['-RANGE_END-'].update(values=[''])
+        window['-SECTION_START-'].update(values=[''])
+        window['-SECTION_END-'].update(values=[''])
+        window['-SHELF_START-'].update(values=[''])
+        window['-SHELF_END-'].update(values=[''])
+        window['-TOP_CONTAINERS-'].update(values=[''], size=(15, 5))
         window['-LOCATION_URI-'].update("", readonly=True)
         window['-LOCATION_BARCODE-'].update("", readonly=False)
         window['-TOP_CONTAINER_BARCODE-'].update("", readonly=False)
@@ -577,209 +730,6 @@ while True:
             raise
     #to query spreadsheet by stacks coordinates. especially meant for times when no location barcode exists yet
     #can be iterable against floor/room. not iterable on range/section/shelf as those are a single field in the spreadsheet
-    if values['-INVENTORY_RANGE_CHECK-'] is False:
-        window["-INVENTORY_RANGE_START-"].update(" ")
-        window['-WHOLE_ROOM-'].update(visible=False)
-        window['-SHELF_LIST-'].update(visible=False)
-        window['-INVENTORY_RANGE_END-'].update(visible=False)
-        window["-RANGE_RANGE_TEXT-"].update(visible=False)
-        window["-RANGE_RANGE-"].update(visible=False)
-        window["-RANGE_SECTION_TEXT-"].update(visible=False)
-        window["-RANGE_SECTION-"].update(visible=False)
-        window["-RANGE_SHELF_TEXT-"].update(visible=False)
-        window["-RANGE_SHELF-"].update(visible=False)
-        window['-WARNING-'].update(visible=False)
-        window['-GEN_PDF-'].update(visible=False)
-        window['-GEN_DF-'].update(visible=False)
-        window['-INCL_BONUS-'].update(visible=False)
-        window['-INCL_DIRECTIONS-'].update(visible=False)
-        window['-ATYPICAL-'].update(visible=False)
-        window['-CALCULATE_STORAGE-'].update(visible=False)
-        window['-INCHES_TEXT-'].update(visible=False)
-        window['-INCHES-'].update(visible=False)
-        window['-FIND_ME_STORAGE-'].update(visible=False)
-    if values['-INVENTORY_RANGE_CHECK-'] is True and values['-INVENTORY_MANAGEMENT-'] is False:
-        window["-INVENTORY_RANGE_START-"].update(" ")
-        window['-WHOLE_ROOM-'].update(visible=False)
-        window['-SHELF_LIST-'].update(visible=False)
-        window['-INVENTORY_RANGE_END-'].update(visible=False)
-        window["-RANGE_RANGE_TEXT-"].update(visible=False)
-        window["-RANGE_RANGE-"].update(visible=False)
-        window["-RANGE_SECTION_TEXT-"].update(visible=False)
-        window["-RANGE_SECTION-"].update(visible=False)
-        window["-RANGE_SHELF_TEXT-"].update(visible=False)
-        window["-RANGE_SHELF-"].update(visible=False)
-        window['-WARNING-'].update(visible=False)
-        window['-GEN_PDF-'].update(visible=False)
-        window['-GEN_DF-'].update(visible=False)
-        window['-INCL_BONUS-'].update(visible=False)
-        window['-INCL_DIRECTIONS-'].update(visible=False)
-        window['-ATYPICAL-'].update(visible=False)
-        window['-CALCULATE_STORAGE-'].update(visible=False)
-        window['-INCHES_TEXT-'].update(visible=False)
-        window['-INCHES-'].update(visible=False)
-        window['-FIND_ME_STORAGE-'].update(visible=False)
-    if values['-INVENTORY_RANGE_CHECK-'] is True and values['-INVENTORY_MANAGEMENT-'] is True:
-        window["-INVENTORY_RANGE_START-"].update("Range start")
-        window['-WHOLE_ROOM-'].update(visible=True)
-        window['-SHELF_LIST-'].update(visible=True)
-        window['-INVENTORY_RANGE_END-'].update(visible=True)
-        window["-RANGE_RANGE_TEXT-"].update(visible=True)
-        window["-RANGE_RANGE-"].update(visible=True)
-        window["-RANGE_SECTION_TEXT-"].update(visible=True)
-        window["-RANGE_SECTION-"].update(visible=True)
-        window["-RANGE_SHELF_TEXT-"].update(visible=True)
-        window["-RANGE_SHELF-"].update(visible=True)
-        window['-WARNING-'].update(visible=True)
-        window['-GEN_PDF-'].update(visible=True)
-        window['-GEN_DF-'].update(visible=True)
-        window['-INCL_BONUS-'].update(visible=True)
-        window['-INCL_DIRECTIONS-'].update(visible=True)
-        window['-ATYPICAL-'].update(visible=True)
-        window['-CALCULATE_STORAGE-'].update(visible=True)
-        window['-INCHES_TEXT-'].update(visible=True)
-        window['-INCHES-'].update(visible=True)
-        window['-FIND_ME_STORAGE-'].update(visible=True)
-    if values["-CONTAINER_MANAGEMENT-"] is True:
-        window['-REFERENCE_CHECKOUT-'].update(visible=True)
-        window['-CHECKOUT-'].update(visible=True)
-        window['-RETURN-'].update(visible=True)
-        window['-TRANSFER-'].update(visible=True)
-        window['-BOX_BARCODE_TEXT-'].update(visible=True)
-        window['-BOX_BARCODE-'].update(visible=True)
-        window['-CIRCULATION_LOCATION_TEXT-'].update(visible=True)
-        window['-CIRCULATION_LOCATION-'].update(visible=True)
-        window['-CIRCULATE_CONTAINER-'].update(visible=True)
-        window['-INVENTORY_RANGE_CHECK-'].update(visible=False)
-    if values['-CONTAINER_MANAGEMENT-'] is False:
-        window['-REFERENCE_CHECKOUT-'].update(visible=False)
-        window['-CHECKOUT-'].update(visible=False)
-        window['-RETURN-'].update(visible=False)
-        window['-TRANSFER-'].update(visible=False)
-        window['-BOX_BARCODE_TEXT-'].update(visible=False)
-        window['-BOX_BARCODE-'].update(visible=False)
-        window['-CIRCULATION_LOCATION_TEXT-'].update(visible=False)
-        window['-CIRCULATION_LOCATION-'].update(visible=False)
-        window['-CIRCULATE_CONTAINER-'].update(visible=False)
-    if values['-STACKS_LOCATIONS-'] is True:
-        window['-ENABLE_EDIT-'].update(visible=True)
-        window['-LOCATION_URI_TEXT-'].update(visible=True)
-        window['-LOCATION_URI-'].update(visible=True)
-        window['-LOCATION_PROFILE_TEXT-'].update(visible=True)
-        window['-LOCATION_PROFILE-'].update(visible=True)
-        window['-LOCATION_BARCODE_TEXT-'].update(visible=True)
-        window['-LOCATION_BARCODE-'].update(visible=True)
-        window['-LOCATION_BARCODE_BUTTON-'].update(visible=True)
-        window['-TOP_CONTAINERS_TEXT-'].update(visible=True)
-        window['-TOP_CONTAINERS-'].update(visible=True)
-        window['-TOP_CONTAINER_BARCODE_TEXT-'].update(visible=True)
-        window['-TOP_CONTAINER_BARCODE-'].update(visible=True)
-        window['-FILTER_WARNING-'].update(visible=True)
-        window['-INVENTORY_RANGE_START-'].update(visible=True)
-        window['-FLOOR_KEY-'].update(visible=True)
-        window['-FLOOR-'].update(visible=True)
-        window['-ROOM_KEY-'].update(visible=True)
-        window['-ROOM-'].update(visible=True)
-        window['-WHOLE_ROOM-'].update(visible=False)
-        window['-SHELF_LIST-'].update(visible=False)
-        window['-INVENTORY_RANGE_CHECK-'].update(visible=False)
-        window['-INVENTORY_RANGE_END-'].update(visible=False)
-        window["-RANGE_RANGE_TEXT-"].update(visible=False)
-        window["-RANGE_RANGE-"].update(visible=False)
-        window["-RANGE_SECTION_TEXT-"].update(visible=False)
-        window["-RANGE_SECTION-"].update(visible=False)
-        window["-RANGE_SHELF_TEXT-"].update(visible=False)
-        window["-RANGE_SHELF-"].update(visible=False)
-        window['-WARNING-'].update(visible=False)
-        window['-GEN_PDF-'].update(visible=False)
-        window['-GEN_DF-'].update(visible=False)
-        window['-INCL_BONUS-'].update(visible=False)
-        window['-INCL_DIRECTIONS-'].update(visible=False)
-        window['-ATYPICAL-'].update(visible=False)
-    if values['-STACKS_LOCATIONS-'] is False:
-        window['-ENABLE_EDIT-'].update(visible=False)
-        window['-LOCATION_URI_TEXT-'].update(visible=False)
-        window['-LOCATION_URI-'].update(visible=False)
-        window['-LOCATION_PROFILE_TEXT-'].update(visible=False)
-        window['-LOCATION_PROFILE-'].update(visible=False)
-        window['-LOCATION_PROFILE_DROP-'].update(visible=False)
-        window['-LOCATION_PROFILE_BUTTON-'].update(visible=False)
-        window['-LOCATION_BARCODE_TEXT-'].update(visible=False)
-        window['-LOCATION_BARCODE-'].update(visible=False)
-        window['-LOCATION_BARCODE_BUTTON-'].update(visible=False)
-        window['-TOP_CONTAINERS_TEXT-'].update(visible=False)
-        window['-TOP_CONTAINERS-'].update(visible=False)
-        window['-TOP_CONTAINER_BARCODE_TEXT-'].update(visible=False)
-        window['-TOP_CONTAINER_BARCODE-'].update(visible=False)
-        window['-FILTER_WARNING-'].update(visible=False)
-        window['-INVENTORY_RANGE_START-'].update(visible=False)
-        window['-FLOOR_KEY-'].update(visible=False)
-        window['-FLOOR-'].update(visible=False)
-        window['-ROOM_KEY-'].update(visible=False)
-        window['-ROOM-'].update(visible=False)
-        window['-RANGE_TEXT-'].update(visible=False)
-        window['-RANGE-'].update(visible=False)
-        window['-SECTION_TEXT-'].update(visible=False)
-        window['-SECTION-'].update(visible=False)
-        window['-SHELF_TEXT-'].update(visible=False)
-        window['-SHELF-'].update(visible=False)
-    if values['-ENABLE_EDIT-'] is True and values['-STACKS_LOCATIONS-'] is True:
-        window['-LOCATION_PROFILE_DROP-'].update(visible=True)
-        window['-LOCATION_PROFILE_BUTTON-'].update(visible=True)
-        window['-LOCATION_BARCODE_BUTTON-'].update(visible=True)
-        window['-TOP_CONTAINER_BARCODE_BUTTON-'].update(visible=True)
-    if values['-ENABLE_EDIT-'] is True and values['-STACKS_LOCATIONS-'] is False:
-        window['-LOCATION_PROFILE_DROP-'].update(visible=False)
-        window['-LOCATION_PROFILE_BUTTON-'].update(visible=False)
-        window['-LOCATION_BARCODE_BUTTON-'].update(visible=False)
-        window['-TOP_CONTAINER_BARCODE_BUTTON-'].update(visible=False)
-    if values['-ENABLE_EDIT-'] is False:
-        window['-LOCATION_PROFILE_DROP-'].update(visible=False)
-        window['-LOCATION_PROFILE_BUTTON-'].update(visible=False)
-        window['-LOCATION_BARCODE_BUTTON-'].update(visible=False)
-        window['-TOP_CONTAINER_BARCODE_BUTTON-'].update(visible=False)
-    if values['-STACKS_LOCATIONS-'] is True or values['-INVENTORY_MANAGEMENT-'] is True:
-        window['-FILTER_WARNING-'].update(visible=True)
-        window['-INVENTORY_RANGE_START-'].update(visible=True)
-        window['-FLOOR_KEY-'].update(visible=True)
-        window['-FLOOR-'].update(visible=True)
-        window['-ROOM_KEY-'].update(visible=True)
-        window['-ROOM-'].update(visible=True)
-        window['-RANGE_TEXT-'].update(visible=True)
-        window['-RANGE-'].update(visible=True)
-        window['-SECTION_TEXT-'].update(visible=True)
-        window['-SECTION-'].update(visible=True)
-        window['-SHELF_TEXT-'].update(visible=True)
-        window['-SHELF-'].update(visible=True)
-    if values['-INVENTORY_MANAGEMENT-'] is True:
-        window['-RANGE_TEXT-'].update(visible=False)
-        window['-RANGE-'].update(visible=False)
-        window['-SECTION_TEXT-'].update(visible=False)
-        window['-SECTION-'].update(visible=False)
-        window['-SHELF_TEXT-'].update(visible=False)
-        window['-SHELF-'].update(visible=False)
-        window['-INVENTORY_RANGE_CHECK-'].update(visible=True)
-        window['-RANGE_TEXT-'].update(visible=True)
-        window['-RANGE-'].update(visible=True)
-        window['-SECTION_TEXT-'].update(visible=True)
-        window['-SECTION-'].update(visible=True)
-        window['-SHELF_TEXT-'].update(visible=True)
-        window['-SHELF-'].update(visible=True)
-    if values['-CONTAINER_CHECK-'] is True:
-        window['-INVENTORY_RANGE_CHECK-'].update(visible=False)
-        window['-CONTAINER_SEARCH_TEXT-'].update(visible=True)
-        window['-CONTAINER_SEARCH-'].update(visible=True)
-        window['-FIND_ME1-'].update(visible=True)
-        window['-TX_TEXT-'].update(visible=True)
-        window['-TX-'].update(visible=True)
-        window['-FIND_ME2-'].update(visible=True)
-    if values['-CONTAINER_CHECK-'] is False:
-        window['-CONTAINER_SEARCH_TEXT-'].update(visible=False)
-        window['-CONTAINER_SEARCH-'].update(visible=False)
-        window['-FIND_ME1-'].update(visible=False)
-        window['-TX_TEXT-'].update(visible=False)
-        window['-TX-'].update(visible=False)
-        window['-FIND_ME2-'].update(visible=False)
     if event == "-CIRCULATE_CONTAINER-":
         if values['-CIRCULATION_LOCATION-'] == "" or values['-CIRCULATION_LOCATION-'] == "no value":
             window['-OUTPUT-'].update("no barcode provided\nEnter a location barcode and try again\n", append=True)
@@ -822,11 +772,11 @@ while True:
         window['-OUTPUT-'].update("trial successful\n", append=True)
         if "inventory_data" in locals() or "inventory_data" in globals():
             new_inventory = inventory_data
-            if values['-FLOOR-'] != "":
-                an_inventory = new_inventory['floor'].str.contains(values['-FLOOR-'])
+            if values['-FLOOR2-'] != "":
+                an_inventory = new_inventory['floor'].str.contains(values['-FLOOR2-'])
                 new_inventory = new_inventory[an_inventory]
-            if values['-ROOM-'] != "":
-                an_inventory = new_inventory['room'].str.contains(values['-ROOM-'])
+            if values['-ROOM2-'] != "":
+                an_inventory = new_inventory['room'].str.contains(values['-ROOM2-'])
                 new_inventory = new_inventory[an_inventory]
             new_data_set = dict_converter(new_inventory)
             location_dictionary = new_data_set[0]
@@ -835,12 +785,15 @@ while True:
             print("fail")
             window['-OUTPUT-'].update("you need to load the spreadsheet first\n")
     if event == "-FIND_ME_STORAGE-":
+        if values['-config_use-'] is True:
+            eligible_list = make_list_from_config("eligible_list")
+            space_dict = make_list_from_config("space_dictionary")
         new_inventory = inventory_data
-        if values['-FLOOR-'] != "":
-            an_inventory = new_inventory['floor'].str.contains(values['-FLOOR-'])
+        if values['-FLOOR2-'] != "":
+            an_inventory = new_inventory['floor'].str.contains(values['-FLOOR2-'])
             new_inventory = new_inventory[an_inventory]
-        if values['-ROOM-'] != "":
-            an_inventory = new_inventory['room'].str.contains(values['-ROOM-'])
+        if values['-ROOM2-'] != "":
+            an_inventory = new_inventory['room'].str.contains(values['-ROOM2-'])
             new_inventory = new_inventory[an_inventory]
         new_data_set = dict_converter(new_inventory)
         location_dictionary = new_data_set[0]
@@ -896,7 +849,7 @@ while True:
                     if contiguous >= float(values['-INCHES-']):
                         window['-INVENTORY_OUTPUT-'].update(f"{str(contiguous)} linear inches available starting at {starting_location}\n", append=True)
                         final_count = str(float(contiguous)/12).split(".")
-                        storage_list = f"{storage_list}{str(contiguous)} linear inches ({final_count[0]}.{final_count[1][:2]} cubic ft.) available starting at {starting_location}\n"
+                        storage_list = f"{storage_list}{str(contiguous)} linear inches ({final_count[0]}.{final_count[1][:2]} cubic ft.) available starting at {starting_location} thru {prior_location}\n"
                     starting_location = current_location
                     contiguous = 0
                 prior_location = current_location
@@ -912,7 +865,6 @@ while True:
                     contiguous = 0
             starting_line = key
             '''
-            eligible_list = ['RS', 'MS', 'LittleMS', 'no value']
             location_in_room = new_space_dictionary[key]['location_in_room']
             if "Range" in location_in_room and "Section" in location_in_room and "Shelf" in location_in_room:
                 location_profile = new_space_dictionary[key]['location_profile']
@@ -927,13 +879,13 @@ while True:
         SG.popup_scrolled(storage_list, title="Available space at:", size=(100, 35), modal=True)
     if event == "-SHELF_LIST-":
         new_inventory = inventory_data
-        if values['-FLOOR-'] == "" and values['-ROOM-'] == "":
+        if values['-FLOOR2-'] == "" and values['-ROOM2-'] == "":
             window['-OUTPUT-'].update("At minimum choose a floor or room\n", append=True)
-        if values['-FLOOR-'] != "":
-            an_inventory = new_inventory['floor'].str.contains(values['-FLOOR-'])
+        if values['-FLOOR2-'] != "":
+            an_inventory = new_inventory['floor'].str.contains(values['-FLOOR2-'])
             new_inventory = new_inventory[an_inventory]
-        if values['-ROOM-'] != "":
-            an_inventory = new_inventory['room'].str.contains(values['-ROOM-'])
+        if values['-ROOM2-'] != "":
+            an_inventory = new_inventory['room'].str.contains(values['-ROOM2-'])
             new_inventory = new_inventory[an_inventory]
         new_data_set = dict_converter(new_inventory)
         location_dictionary = new_data_set[0]
@@ -956,33 +908,33 @@ while True:
         if values['-WHOLE_ROOM-'] is False:
             option_list = []
             window['-OUTPUT-'].update("compiling data based on range of selected values\n", append=True)
-            current = f"{values['-RANGE-']}, {values['-SECTION-']}, {values['-SHELF-']}"
+            current = f"{values['-RANGE_START-']}, {values['-SECTION_START-']}, {values['-SHELF_START-']}"
             option_list.append(current)
-            if values['-RANGE-'] != "" and values['-RANGE_RANGE-'] != "":
-                end = f"{values['-RANGE_RANGE-']}, {values['-RANGE_SECTION-']}, {values['-RANGE_SHELF-']}"
+            if values['-RANGE_START-'] != "" and values['-RANGE_END-'] != "":
+                end = f"{values['-RANGE_END-']}, {values['-SECTION_END-']}, {values['-SHELF_END-']}"
                 try:
-                    range = int(values['-RANGE-'].split(" ")[-1])
-                    end_range = int(values['-RANGE_RANGE-'].split(" ")[-1])
+                    range = int(values['-RANGE_START-'].split(" ")[-1])
+                    end_range = int(values['-RANGE_END-'].split(" ")[-1])
                 except ValueError as e:
                     SG.popup_error_with_traceback("Could not convert location coordinates into something processable. Use checkboxes to include oddball (including map drawers), directional and Bonus shelving!!!", e)
                     raise
-                if "Range" not in values['-RANGE-'] or "Range" not in values['-RANGE_RANGE-'] or "Section" not in values['-SECTION-'] or "Section" not in values['-RANGE_SECTION-'] or "Shelf" not in values['-SHELF-'] or "Shelf" not in values['-RANGE_SHELF-']:
+                if "Range" not in values['-RANGE_START-'] or "Range" not in values['-RANGE_END-'] or "Section" not in values['-SECTION_START-'] or "Section" not in values['-SECTION_END-'] or "Shelf" not in values['-SHELF_START-'] or "Shelf" not in values['-SHELF_END-']:
                     window['-OUTPUT-'].update("This functionality is meant ONLY for numeric Range/Section/Shelf, for other types of shelving use the checkboxes below or use 'Whole room'")
                 else:
-                    if values['-SECTION-'] != "":
-                        section = int(values['-SECTION-'].split(" ")[-1])
+                    if values['-SECTION_START-'] != "":
+                        section = int(values['-SECTION_START-'].split(" ")[-1])
                     else:
                         section = 0
-                    if values['-SHELF-'] != "":
-                        shelf = int(values['-SHELF-'].split(" ")[-1])
+                    if values['-SHELF_START-'] != "":
+                        shelf = int(values['-SHELF_START-'].split(" ")[-1])
                     else:
                         shelf = 0
-                    if values['-RANGE_SECTION-'] != "":
-                        end_section = int(values['-RANGE_SECTION-'].split(" ")[-1])
+                    if values['-SECTION_END-'] != "":
+                        end_section = int(values['-SECTION_END-'].split(" ")[-1])
                     else:
                         end_section = 30
-                    if values['-RANGE_SHELF-'] != "":
-                        end_shelf = int(values['-RANGE_SHELF-'].split(" ")[-1])
+                    if values['-SHELF_END-'] != "":
+                        end_shelf = int(values['-SHELF_END-'].split(" ")[-1])
                     else:
                         end_shelf = 20
                     while current != end:
@@ -1103,7 +1055,7 @@ while True:
                 section1['content'] = content1 = []
                 content1.append(global_header)
                 content1.append(print_string)
-                with open(f"inventory_of_{values['-ROOM-']}.pdf", 'wb') as w:
+                with open(f"inventory_of_{values['-ROOM2-']}.pdf", 'wb') as w:
                     build_pdf(document, w)
                 w.close()
             except:
@@ -1119,9 +1071,22 @@ while True:
                     df1 = ["", "", coordinates, shelf_type, container['containers_top_container_indicator'], container['containers_top_container_barcode'], container['containers_container_profile']]
                     list_of_lists.append(df1)
             new_dataframe = PD.DataFrame(list_of_lists, columns=columns)
-            writer = new_dataframe.to_excel(f"inventory_of_{values['-ROOM-']}.xlsx", index=False)
+            writer = new_dataframe.to_excel(f"inventory_of_{values['-ROOM2-']}.xlsx", index=False)
         SG.popup_scrolled(print_string, title="Shelf inventory", size=(100, 35), modal=True)
         print("something")
+    if event == "-filter_coordinates_inventory-":
+        new_inventory = inventory_data
+        if values['-FLOOR2-'] != "":
+            an_inventory = new_inventory['floor'].str.contains(values['-FLOOR2-'])
+            new_inventory = new_inventory[an_inventory]
+        if values['-ROOM2-'] != "":
+            an_inventory = new_inventory['room'].str.contains(values['-ROOM2-'])
+            new_inventory = new_inventory[an_inventory]
+        new_data_set = dict_converter(new_inventory)
+        location_dictionary = new_data_set[0]
+        item_dictionary = new_data_set[1]
+        item_barcode_dictionary = new_data_set[2]
+        window['-OUTPUT-'].update("filtered by floor and/or room\n", append=True)
     if event == "Filter By Location Coordinates":
         aggregated = f"{values['-RANGE-']}, {values['-SECTION-']}, {values['-SHELF-']}"
         window['-TOP_CONTAINER_BARCODE-'].update("", readonly=False)
@@ -1158,7 +1123,7 @@ while True:
                     barcode_set.append(container['containers_top_container_indicator'])
                 barcode_set = list(set(barcode_set))
                 barcode_set.sort()
-                window['-TOP_CONTAINERS-'].update(values=barcode_set)
+                window['-TOP_CONTAINERS-'].update(values=barcode_set, size=(15, 5))
     #to query spreadsheet by location barcode. Will yield all location info including top containers assigned to it
     if event == "Filter by Location Barcode":
         if values['-LOCATION_BARCODE-'] == "" or values['-LOCATION_BARCODE-'] == "no value":
@@ -1186,7 +1151,7 @@ while True:
                         barcode_set.append(container['containers_top_container_indicator'])
                     barcode_set = list(set(barcode_set))
                     barcode_set.sort()
-                    window['-TOP_CONTAINERS-'].update(values=barcode_set)
+                    window['-TOP_CONTAINERS-'].update(values=barcode_set, size=(15, 5))
     #to query the spreadsheet by barcode for a container. use for determining where a box goes
     if event == "Filter by Container Barcode":
         new_inventory = inventory_data
