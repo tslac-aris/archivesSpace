@@ -6,6 +6,8 @@ import os
 import io
 import datetime
 
+my_icon64 = b'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'
+
 SG.theme("Purple")
 
 supported_images = ('.png', '.jpg', '.jpeg', '.tiff', '.bmp')
@@ -15,6 +17,52 @@ filename = ""
 report_captions_dict = {}
 treatment_plan_dict = {}
 treatment_plan_list = []
+
+
+
+def report_captioner(image_dict, filepath):
+    my_text = '''<div class="images_section">
+        <h2 class="images_title">Report Images</h2>
+        '''
+    image_text = ""
+    image_counter = 0
+
+    for key in image_dict.keys():
+        filename = os.path.join(filepath, key)
+        file_caption = image_dict[key]
+        image_counter += 1
+        image_text += f'<div class="single_image"><h3>Image {str(image_counter)}</h3><br/><img src="{filename}" title="{file_caption}" style="max-width: 450px"><br/><p>{file_caption}</p></div>'
+    my_text = f"{my_text}{image_text}</div>"
+    print(my_text)
+    return my_text
+
+def report_first_images(filepath):
+    recto = ""
+    verso = ""
+    finished_text = ""
+    for dirpath, dirnames, filenames in os.walk(filepath):
+        for filename in filenames:
+            filename_root = filename.split(".")[0]
+            if filename_root == "recto" or filename_root == "Recto":
+                recto = os.path.join(dirpath, filename)
+            if filename_root == "verso" or filename_root == "Verso":
+                verso = os.path.join(dirpath, filename)
+    if recto != "":
+        recto = f'''<div class="top_images">
+                        <h2>Recto</h2>
+                        <img src="{recto}" title="Front of item"/>
+                </div>'''
+    if verso != "":
+        verso = f'''<div class="top_images">
+                        <h2>Verso</h2>
+                        <img src="{verso}" title="Back of item"/>
+                </div>'''
+    if recto != "" or verso != "":
+        finished_text = f'''<div class="top_image_section">
+                                {recto}
+                                {verso}
+                        </div>'''
+    return finished_text
 
 def treatment_text_parser(treatment_block):
     treatment_plan_dict = {}
@@ -308,7 +356,15 @@ layout_exams = [
         SG.Input("", size=(6, 1), key="-estimated_treatment_hours-"),
         SG.Text("hrs"),
         SG.Push()
-    ]
+    ],
+    [
+        SG.HorizontalSeparator(),
+    ],
+    [
+        SG.Text("Testing results:"),
+        SG.Push(),
+        SG.Multiline(key="-testing_results-", size=(100,5)),
+    ],
 ]
 
 layout_treatments = [
@@ -318,7 +374,7 @@ layout_treatments = [
         SG.Push(),
     ],
     [
-        SG.Text("treatment: "),
+        SG.Text("Treatment: "),
         SG.Combo(values=[], key="-treatment_drop-", size=(40, 5), enable_events=True),
         SG.Push(),
         SG.Text("Treated by: "),
@@ -476,7 +532,8 @@ layout = [
 ]
 
 window = SG.Window(title="Conservation management GUI",
-                   layout=layout)
+                   layout=layout,
+                   icon=my_icon64)
 
 event, values = window.read()
 while True:
@@ -671,6 +728,8 @@ while True:
             Notes = new_df.loc[new_df['ConsID'] == ConsID, 'Notes'].values[0]
             Condition_Issues = new_df.loc[new_df['ConsID'] == ConsID, 'Condition Issues'].values[0]
             window['-condition_plan_list-'].update(Condition_Issues)
+            Testing_Results = new_df.loc[new_df['ConsID'] == ConsID, "Testing Results"].values[0]
+            window['-testing_results-'].update(Testing_Results)
             Treatment_Plan = new_df.loc[new_df['ConsID'] == ConsID, 'Treatment Plan'].values[0]
             window['-treatment_plan_list-'].update(Treatment_Plan)
             Number_of_Items = new_df.loc[new_df['ConsID'] == ConsID, 'Number of Items'].values[0]
@@ -778,43 +837,42 @@ while True:
             for key in treatment_plan_dict.keys():
                 my_float = float(treatment_plan_dict[key][3])
                 quick_math += my_float
-            df.loc[int(values['index_key'])] = [
-                str(values['-current_status-']),
-                values['-official_consID-'],
-                values['-title-'],
-                values['-unique_identifier-'],
-                values['-creator-'],
-                values['-created_year-'][:4],
-                values['-Aspace-'],
-                values['-requestor-'],
-                values['-request_date-'][:10],
-                values['-request_reason-'],
-                values['-request_dept-'],
-                values['-reviewed_by-'],
-                values['-reviewed_date-'][:10],
-                values['-reviewed_notes-'],
-                values['-examined_by-'],
-                values['-examined_date-'][:10],
-                values['-current_priority-'],
-                dimensions_text,
-                values['-extent-'],
-                values['-format-'],
-                values['-substrate-'],
-                values['-media_type-'],
-                values['-provenance-'],
-                values['-item_notes-'],
-                values['-condition_plan_list-'],
-                values['-treatment_plan_list-'],
-                values['-number_of_items-'],
-                values['-estimated_treatment_hours-'],
-                values['-treatment_plan_list-'],
-                values['-treatment_text_block-'],
-                str(quick_math),
-                values['-treated_by-'],
-                total_hours(treatment_plan_dict),
-                values['-treatment_date-'][:10],
-                values['-treatment_images-']
-            ]
+            df.loc[int(values['index_key']), "Status"] = str(values['-current_status-'])
+            df.loc[int(values['index_key']), "ConsID"] = values['-official_consID-']
+            df.loc[int(values['index_key']), "Title"] = values['-title-']
+            df.loc[int(values['index_key']), "Unique ID"] = values['-unique_identifier-']
+            df.loc[int(values['index_key']), "Creator"] = values['-creator-']
+            df.loc[int(values['index_key']), "Year of Creation"] = values['-created_year-'][:4]
+            df.loc[int(values['index_key']), "Link to Catalog"] = values['-Aspace-']
+            df.loc[int(values['index_key']), "Requested by"] = values['-requestor-']
+            df.loc[int(values['index_key']), "Request Date"] = values['-request_date-'][:10]
+            df.loc[int(values['index_key']), "Request Reason"] = values['-request_reason-']
+            df.loc[int(values['index_key']), "Department"] = values['-request_dept-']
+            df.loc[int(values['index_key']), "Rev. By"] = values['-reviewed_by-']
+            df.loc[int(values['index_key']), "Review Date"] = values['-reviewed_date-'][:10]
+            df.loc[int(values['index_key']), "Review Notes"] = values['-reviewed_notes-']
+            df.loc[int(values['index_key']), "Exam By"] = values['-examined_by-']
+            df.loc[int(values['index_key']), "Exam Date"] = values['-examined_date-'][:10]
+            df.loc[int(values['index_key']), "High Priority?"] = values['-current_priority-']
+            df.loc[int(values['index_key']), "Dimensions (cm)"] = dimensions_text
+            df.loc[int(values['index_key']), "Extent"] = values['-extent-']
+            df.loc[int(values['index_key']), "Format"] = values['-format-']
+            df.loc[int(values['index_key']), "Substrate"] = values['-substrate-']
+            df.loc[int(values['index_key']), "Media"] = values['-media_type-']
+            df.loc[int(values['index_key']), "History"] = values['-provenance-']
+            df.loc[int(values['index_key']), "Notes"] = values['-item_notes-']
+            df.loc[int(values['index_key']), "Condition Issues"] = values['-condition_plan_list-']
+            df.loc[int(values['index_key']), "Treatment Plan"] = values['-treatment_plan_list-']
+            df.loc[int(values['index_key']), "Number of Items"] = values['-number_of_items-']
+            df.loc[int(values['index_key']), "Est. Time (hrs)"] = values['-estimated_treatment_hours-']
+            df.loc[int(values['index_key']), "Testing Results"] = values['-testing_results-']
+            df.loc[int(values['index_key']), "Treatment"] = values['-treatment_plan_list-']
+            df.loc[int(values['index_key']), "Treatment Notes"] = values['-treatment_text_block-']
+            df.loc[int(values['index_key']), "Actual Time"] = str(quick_math)
+            df.loc[int(values['index_key']), "Treated by"] = values['-treated_by-']
+            df.loc[int(values['index_key']), "Total Actual Time"] = total_hours(treatment_plan_dict)
+            df.loc[int(values['index_key']), "Date Completed"] = values['-treatment_date-'][:10]
+            df.loc[int(values['index_key']), "Treatment Images"] = values['-treatment_images-']
             writer = df.to_excel(values['-spreadsheet-'], sheet_name="Conservation Reports", index=False)
             print("data saved")
     if event == "Load image list":
@@ -908,6 +966,97 @@ while True:
             window['-treatment_notes-'].update(value='No text yet')
             window['-actual_time-'].update(value='0')
         print(treatment_plan_dict)
+    if event == "Create Report":
+        style = '''table, th, td{border: 2px solid black;border-collapse:collapse;padding-left:2px;padding-right:2px;}
+                    .top_images>img{max-width:450px}
+                    .top_image_section{display:inline-table;padding-left:25%;padding-right:25%;}
+                    .top_images{display:table-cell;padding:10px}
+                    .single_image{text-align:center;}
+                    table{width:100%;}
+                    .table-left{width: 30%}
+                    .table-right{width: 70%}
+                    '''
+        top_images = report_first_images(values['-report_images_folder-'])
+        my_images = report_captioner(report_captions_dict, values['-report_images_folder-'])
+        uuid = ""
+        if values['-unique_identifier-'] != "" or values['-unique_identifier_'] != "Non-conservation unique identifier":
+            uuid = f"<tr><td>Other Unique Identifier</td><td>{values['-unique_identifier-']}</td></tr>"
+
+        report = f'''<html>
+            <head>
+                <style type="text/css">
+                    {style}
+                </style>
+            <h1 style="text-align: center">Conservation Report and Treatment Plan</h1>
+            <h1 style="text-align: center">{values['-title-']}</h1>
+            <p style="text-align: center">Texas State Library and Archives Commission</p>
+            <p style="text-align: center">Archives and Information Services | Conservation</p>
+            {top_images}
+            <table>
+                <tr>
+                    <td class="table-left">Name of piece:</td>
+                    <td class="table-right">{values['-title-']}</td>
+                </tr>
+                <tr>
+                    <td>Unique identifier:</td>
+                    <td>{values['-official_consID-']}</td>
+                </tr>
+                {uuid}
+                <tr>
+                    <td>ArchivesSpace Link:</td>
+                    <td>{values['-Aspace-']}</td>
+                </tr>
+                <tr>
+                    <td>Date inspected:</td>
+                    <td>{values['-examined_date-']}</td>
+                </tr>
+                <tr>
+                    <td>Inspected by:</td>
+                    <td>{values['-examined_by-']}</td>
+                </tr>
+                <tr>
+                    <td>Date created:</td>
+                    <td>{values['-created_year-']}</td>
+                </tr>
+                <tr>
+                    <td>Creator:</td>
+                    <td>{values['-creator-']}</td>
+                </tr>
+                <tr>
+                    <td>Dimensions:</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Description:</td>
+                    <td>{values['-item_notes-']}</td>
+                </tr>
+                <tr>
+                    <td>Condition concerns:</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Treatment plan:</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Estimated time for treatment:</td>
+                    <td>{values['-estimated_treatment_hours-']}</td>
+                </tr>
+                <tr>
+                    <td>Treatment undertaken:</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Actual total time:</td>
+                    <td>{values['-total_actual_time-']}</td>
+                </tr>
+            </table>
+            {my_images}
+        </html>
+        '''
+        with open(f"{ConsID}_report.html", 'w', encoding='utf-8') as f:
+            f.write(report)
+        f.close()
     if event == "Generate New Conservation Workbook":
         df_list = []
         for item in my_config['spreadsheet_columns'].items():
