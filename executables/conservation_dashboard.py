@@ -1054,7 +1054,7 @@ while True:
             {my_images}
         </html>
         '''
-        with open(f"{ConsID}_report.html", 'w', encoding='utf-8') as f:
+        with open(f"{values['-consID2-']}_report.html", 'w', encoding='utf-8') as f:
             f.write(report)
         f.close()
     if event == "Generate New Conservation Workbook":
