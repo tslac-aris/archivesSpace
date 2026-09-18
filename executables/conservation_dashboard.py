@@ -8,6 +8,180 @@ import datetime
 from pdfme import build_pdf
 from pdfme import color
 
+config_template = '''#NOTE: This config file will be used to generate a dictionary of everything you list in a given section
+#Based upon the controlled values in the conservation spreadsheet
+#value on the left of the =, explanation for reference on the right
+#changes to the names of the controlled value sections (in the []) will require change to the raw code
+[logos]
+header_logo = C:/Users/bthomas/Downloads/tslac_logo_1_jpeg_x150.jpg
+footer_logo = C:/Users/bthomas/Downloads/tslac_logo_3_jpeg_bw.jpg
+[statusDD]
+#numbers are for legacy CDMS status ID
+Not started	=
+In progress	= 2
+Hold =
+Awating supplies =
+Complete =
+Completed & returned =
+Selected for treatment = 2
+Returned without treatment = 4
+Needs review = 1
+Needs examination = 1
+On exhibit =
+Quarantine =
+Requires mold remediation =
+Anoxia =
+[departmentDD]
+Archives =
+Cataloging =
+Publications =
+SHC =
+Reference =
+Exhibits =
+Other =
+[descriptionDD_format]
+Book = 
+Paper = 
+Other = 
+Photograph = 
+Blueprint = 
+[descriptionDD_substrate]
+Paper = 
+Leather = 
+Parchment = 
+Vellum = 
+Newsprint = 
+Glass = 
+[descriptionDD_media]
+some_format = 
+another_format = 
+[conditionDD]
+Acid Burn =
+Adhesive =
+Adhesive tape =
+Book spine =
+Brittle =
+Cockling =
+Color bleeding = 
+Corrosion =
+Crease =
+Disbind needed =
+Discoloration =
+Exhibition upcoming =
+Fading =
+Fastener =
+Housing issue =
+Iron gall ink =
+Laminated =
+Loose pages =
+Loss =
+Minor tear =
+Moisture =
+Mold =
+Pests =
+Previous treatment failing =
+Red rot =
+Silking =
+Surface grime =
+Tear =
+[highPriorityDD]
+Exhibition =
+Contagion =
+IGI Issue =
+High Use =
+None =
+[treatmentDD]
+Alkalinization = Buffer, for acidic paper, etc. often during washing
+Aqueous phytate treatment (IGI) = Complex aqueous treatment for stabilizing free iron ions in iron gall ink, must do if aqueous treatment is necessary for IGI
+Bookkeeper = Deacidification, best in batches
+Consolidate corners	=
+Consolidate leather	=
+Create custom mount	=
+Custom box =
+Custom enclosure =
+Custom enclosure (buffered) =
+Custom mylar enclosure =
+Digitize =
+Disbind =
+Display copies =
+Dispose =
+Fill = Fill gaps or holes
+Flatten =
+Full conservation binding =
+Full restoration binding =
+Humidify =
+Localized heat = Tacking iron
+Mold remediation with HEPA = Lil' Red vacuum
+Move to cold storage =
+Move to cool storage =
+Page repair (aqueous) =
+Page repair (non-aqueous) =
+Paper pulp fill = Custom fill using blended paper pulp on suction table
+Pest remediation = Vacuum seal and leave 6mos or cold storage
+Preservation copies =
+Quarantine =
+Reback =
+Rehouse =
+Research needed =
+Spot bleaching =
+Spot stain removal =
+Surface clean = Clean dirt and grime from surface
+Surface clean (Fume hood) =
+Tighten hinge =
+Tip-in =
+Tone = Apply color to match
+Wash = Simple, aqueous immersion
+Spine cleaning =
+Case binding =
+Custom phase box =
+Tone cover material =
+Tone fill =
+5-hole pamphlet sew =
+3-hole pamphlet sew =
+[treatmentStaff]
+Dugan, Mattie = 
+Burhans, Kate = 
+[spreadsheet_columns]
+#These are the columns to key to for the Conservation report spreadsheet
+#Saving the report, even though in xlsx format will delete any sheets that aren't the main sheet
+#if you change a column name in the spreadsheet you MUST change the below and the raw code for the tool
+Status = from controlled value list for where the conservation stands right now, value options from controlled value list statusDD
+ConsID = unique identifier for the conservation action formatted sequentially as YYYY_###
+Title = title of the item, title of the collection failing that
+Unique ID = UUID for the item or collection. TX# preferred
+Creator = creator of the item or collection
+Year of Creation = calendar year only
+Link to Catalog = link into archivesspace or library catalog
+Requested by = name of requesting staff
+Request Date = when the collection was requested in format YYYY-MM-DD
+Request Reason = freetext explanation
+Department = Department requestor comes from, using controlled value list departmentDD
+Rev. by = Reviewer name, from controlled value list treatmentStaff
+Review Date = date the review was completed, in format YYYY-MM-DD
+Review Notes = notes about what was found in the review
+Exam By = Freetext name of who is doing the examination
+Exam Date = date of examination formatted as YYYY-MM-DD
+High Priority? = Prioritization of the action, from controlled value list highPriorityDD. None just means not a big priority
+Dimensions (cm) = formatted as #Hx#Wx#D. other formatting options under consideration. Dimensions of the whole
+Extent = volume as a measure of cubic inches/feet/liters/etc
+Format = largest class of the items in consideration, from controlled value list descriptionDD_format
+Substrate = subclass of the items, from controlled value list descriptionDD_substrate. list does not interconnect with format
+Media = type of media, from controlled value list descriptionDD_media
+History = AKA provenance
+Notes = for general notes/description of the item and its condition
+Condition Issues = issues pertinent to the item(s), from controlled value list conditionDD. saved as | delimited list
+Treatment Plan = plan of action for the items, from controlled value list treatmentDD. saved as | delimited list
+Number of Items = whole number of items
+Est. Time (hrs) = estimated hours to completion. Estimate only
+Testing Results = 
+Treatment = list of treatments being applied, | separated
+Treatment Notes = Notes about the treatment, keyed to list of treatments assigned. this is block text. treatments separated by ||; components of treatment staff, treatment date, treatment notes, and actual time for treatment are | delimited
+Actual Time = aggregate of actual time in process
+Treated by = treatment staff, from controlled value list treatmentStaff
+Total Actual Time = actual time to complete, calculated from times entered into treatment notes
+Date Completed = finished date, entered as YYYY-MM-DD
+Treatment Images = directory path to the folder containing images documenting the items/treatment, one folder only
+'''
 
 my_icon64 = b'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'
 
@@ -21,7 +195,38 @@ report_captions_dict = {}
 treatment_plan_dict = {}
 treatment_plan_list = []
 
-def report_creator(dictionary_of_dictionaries, pdf_name):
+def report_creator(report_captions_dict, pdf_name):
+    # the global variables for the report styling
+    pdf_style = {'margin_bottom': 8, 'text_align': 'j'}
+    pdf_formats = {'link': {'c': 'blue', 'u': True},
+                   'title': {'text_align': 'c', 's': 24, 'b': True},
+                   'secondary_title': {'text_align': 'c', 's': 14, 'b': False, 'c': '#045398'},
+                   'thirdary_title': {'text_align': 'l', 's': 14, 'b': True, 'c': '#045398'},
+                   'primary_text': {'s': 11},
+                   'logo': {'text_align': 'l', 'margin_left': 150, 'margin_right': 150, 'max_height': 200},
+                   'report_left': {'text_align': 'r', 'b': True},
+                   'report_right': {'text_align': 'l'},
+                   'report_center': {'text_align': 'c'},
+                   'table_style': {'border_width': 0, 'cell_margin_left': 0, 'cell_margin_bottom': 0},
+                   'footer_right': {'text_align': 'r', 'margin_top': 10}
+                   }
+    new_config = configparser.ConfigParser()
+    new_config.read(values['-config-'])
+    header_logo = new_config.get('logos', 'header_logo')
+    footer_logo = new_config.get('logos', 'footer_logo')
+    document_footer = {'x': 36,
+                       'y': 790,
+                       'height': 50,
+                       'width': 540,
+                       'content': [
+                           {'type': 'table', 'style': 'table_style', 'widths': [1,3], 'table': [[
+                               {'image': footer_logo, 'name': 'TSLAC Footer Logo', 'style': 'logo'},
+                               {'.': [f"{values['-official_consID-']}|", {'var': '$page'}], 'style': 'footer_right'},
+                           ]]}
+                       ]}
+    document_perPage = [{'pages': '1:1000:2', 'style': {'margin': [60, 100, 60, 60]}},
+                        {'pages': '0:1000:2', 'style': {'margin': [60, 60, 60, 100]}},
+                        {'pages': '0:4:2', 'running_sections': {'include': ['header', 'footer']}}]
     first_page_dict = {}
     first_page_dict['Unique identifier:'] = values['-official_consID-']
     first_page_dict['Requested by:'] = values['-requestor-']
@@ -31,10 +236,86 @@ def report_creator(dictionary_of_dictionaries, pdf_name):
     first_page_dict['Creator:'] = values['-creator-']
     first_page_dict['Dimensions:'] = df.loc[int(values['index_key']), 'Dimensions (cm)']
     first_page_dict['Extent:'] = values['-extent-']
+    for key in first_page_dict.keys():
+        if first_page_dict[key] == "":
+            first_page_dict.pop(key)
 
-    images_dict = dictionary_of_dictionaries['images_dict']
+    first_page = []
+    # create header area with logo and title
+    first_page.append({'table': [[{'image': header_logo, 'name':  'TSLAC Logo', 'style': 'logo'},
+                                  {'table': [[{'.': 'CONSERVATION REPORT', 'style': 'title'}],
+                                             [{'.': f"{values['-official_consID-']}: {values['-title-']}", 'style': 'secondary_title', 'outline': {'level': 1, 'title': f"{values['-title-']}"}}]], 'style': 'table_style'}]], 'widths': [1,3], 'style': 'table_style'})
+    # create table with basic info for the cover page, 4 columns wide and iterates over first page dict using counter to trigger when a new row is made
+    new_summary = {'table': [], 'widths': [2,3,2,3], 'style': 'table_style'}
+    counter = 0
+    table_list = []
+    for key in first_page_dict.keys():
+        if counter == 2:
+            new_summary['table'].append(table_list)
+            counter = 0
+            table_list = []
+        table_list.append({'.': key, 'style': 'report_left'})
+        table_list.append({'.': first_page_dict[key], 'style': 'report_right'})
+        counter += 1
+    while len(table_list) < 4:
+        table_list.append({'.': ''})
+    new_summary['table'].append(table_list)
+    first_page.append(new_summary)
+    recto = ""
+    verso = ""
+    for dirpath, dirnames, filenames in os.walk(values['-treatment_images-']):
+        for filename in filenames:
+            filename_root = filename.split(".")[0]
+            if filename_root == "recto" or filename_root == "Recto":
+                recto = os.path.join(values['-treatment_images-'], filename)
+            if filename_root == "verso" or filename_root == "Verso":
+                verso = os.path.join(values['-treatment_images-'], filename)
+    if recto != "" and verso != "":
+        basic_images = {'table': [[{'.': 'Recto', 'style': 'report_right'},
+                                   {'.': 'Verso', 'style': 'report_right'},],
+                                  [{'image': recto, 'max_width': 300, 'style': 'report_center'},
+                                   {'image': verso, 'max_width': 300, 'style': 'report_center'},],]}
+        first_page.append(basic_images)
+    else:
+        SG.popup("Missing recto image, verso image, or both. No images added to the beginning of the report")
+    first_page.append({'.': "SUMMARY", 'style': 'secondary_title', 'outline': {'level': 1, 'text': 'Summary'}})
+    first_page.append({'.': values['-summary-']})
+    # start examination page
+    examination_page = []
+    examination_dict = {}
+    examination_dict['Examined by:'] = values['-examined_by-']
+    examination_dict['Examination date:'] = values['-examined_date-']
+    examination_dict['Provenance:'] = values['-provenance-']
+    examination_dict['Description:'] = values['-item_notes-']
+    examination_dict['Condition conerns:'] = values['-condition_plan_list-']
+    examination_dict['Treatment plan:'] = values['-treatment_plan_list-']
+    for key in examination_dict.keys():
+        if examination_dict[key] == "":
+            examination_dict.pop(key)
+    examination_page.append({'.': 'EXAMINATION REPORT', 'style': 'secondary_title', 'outline': {'level': 1, 'text': 'Examination report'}})
+    exam_page_table = {'table': [], 'widths': [1,3], 'style': 'table_style'}
+    for key in examination_dict.keys():
+        exam_page_table['table'].append([{'.': key, 'style': 'report_left'},{'.': examination_dict[key], 'style': 'report_right'}])
+    examination_page.append(exam_page_table)
+    #start treatment details
+    treatment_page = []
+    treatment_page.append({'.': "TREATMENT", "style": "secondary_title", "outline": {"level": 1, "text": "Treatment"}})
+    treatment_dict = treatment_text_parser(values['-treatment_text_block-'])
+
+    images_page = []
 
 
+    images_dict = report_captions_dict
+
+    document = {}
+    document['style'] = pdf_style
+    document['format'] = pdf_formats
+    document['running_sections'] = {'footer': document_footer}
+    document['sections'] = []
+    document['sections'].append({'running_sections': ['footer'], 'content': first_page})
+    document['sections'].append({'running_sections': ['footer'], 'content': examination_page})
+    document['sections'].append({'running_sections': ['footer'], 'content': treatment_page})
+    document['sections'].append({'running_sections': ['footer'], 'content': images_page})
     with open(pdf_name, "wb") as pdf_file:
         build_pdf(document, pdf_file)
     pdf_file.close()
@@ -305,15 +586,15 @@ layout_exams = [
         SG.Text("Dimensions: "),
         SG.Text("Height"),
         SG.Input("", size=(6, 1), key="-dimensions_h-"),
-        SG.Text("cm"),
+        SG.Text("in"),
         SG.Push(),
         SG.Text("Width"),
         SG.Input("", size=(6, 1), key="-dimensions_w-"),
-        SG.Text("cm"),
+        SG.Text("in"),
         SG.Push(),
         SG.Text("Depth"),
         SG.Input("", size=(6, 1), key="-dimensions_d-"),
-        SG.Text("cm")
+        SG.Text("in")
     ],
     [
         SG.Text("Extent: "),
@@ -1085,7 +1366,10 @@ while True:
             df_list.append(item[0])
         df = pd.DataFrame(columns=df_list)
         writer = df.to_excel("New_ConservationReportingSS_WIP.xlsx", index=False, sheet_name="Conservation Reports")
-        SG.popup("generated new conservation workbook")
+        with open("configfile.cfg", "w") as w:
+            w.write(config_template)
+        w.close()
+        SG.popup("generated new conservation workbook and template config file")
     if event == "Close" or event == SG.WIN_CLOSED:
         break
 window.close()
