@@ -156,13 +156,13 @@ Requested by = name of requesting staff
 Request Date = when the collection was requested in format YYYY-MM-DD
 Request Reason = freetext explanation
 Department = Department requestor comes from, using controlled value list departmentDD
-Rev. by = Reviewer name, from controlled value list treatmentStaff
+Reviewed By = Reviewer name, from controlled value list treatmentStaff
 Review Date = date the review was completed, in format YYYY-MM-DD
 Review Notes = notes about what was found in the review
 Exam By = Freetext name of who is doing the examination
 Exam Date = date of examination formatted as YYYY-MM-DD
 High Priority? = Prioritization of the action, from controlled value list highPriorityDD. None just means not a big priority
-Dimensions (cm) = formatted as #Hx#Wx#D. other formatting options under consideration. Dimensions of the whole
+Dimensions = formatted as #Hx#Wx#D. other formatting options under consideration. Dimensions of the whole
 Extent = volume as a measure of cubic inches/feet/liters/etc
 Format = largest class of the items in consideration, from controlled value list descriptionDD_format
 Substrate = subclass of the items, from controlled value list descriptionDD_substrate. list does not interconnect with format
@@ -200,13 +200,14 @@ def report_creator(report_captions_dict, pdf_name):
     pdf_style = {'margin_bottom': 8, 'text_align': 'j'}
     pdf_formats = {'link': {'c': 'blue', 'u': True},
                    'title': {'text_align': 'c', 's': 24, 'b': True},
-                   'secondary_title': {'text_align': 'c', 's': 14, 'b': False, 'c': '#045398'},
-                   'thirdary_title': {'text_align': 'l', 's': 14, 'b': True, 'c': '#045398'},
-                   'primary_text': {'s': 11},
+                   'secondary_title': {'text_align': 'c', 's': 14, 'b': False, 'c': "darkblue"},
+                   'thirdary_title': {'text_align': 'l', 's': 14, 'b': True, 'c': 'blue'},
+                   'primary_text': {'s': 11, 'c': 'black'},
                    'logo': {'text_align': 'l', 'margin_left': 150, 'margin_right': 150, 'max_height': 200},
-                   'report_left': {'text_align': 'r', 'b': True},
-                   'report_right': {'text_align': 'l'},
-                   'report_center': {'text_align': 'c'},
+                   'report_left': {'text_align': 'r', 'b': True, 'c': 'black'},
+                   'report_right': {'text_align': 'l', 'c': 'black'},
+                   'report_center': {'text_align': 'c', 'c': 'black'},
+                   'table_style_frontpage': {'border_width': 0, 'cell_margin_left': 0, 'cell_margin_bottom': 0, 'cell_margin_top': 1},
                    'table_style': {'border_width': 0, 'cell_margin_left': 0, 'cell_margin_bottom': 0},
                    'footer_right': {'text_align': 'r', 'margin_top': 10}
                    }
@@ -221,7 +222,7 @@ def report_creator(report_captions_dict, pdf_name):
                        'content': [
                            {'type': 'table', 'style': 'table_style', 'widths': [1,3], 'table': [[
                                {'image': footer_logo, 'name': 'TSLAC Footer Logo', 'style': 'logo'},
-                               {'.': [f"{values['-official_consID-']}|", {'var': '$page'}], 'style': 'footer_right'},
+                               {'.': [f"{values['-official_consID-']}  |  ", {'var': '$page'}], 'style': 'footer_right'},
                            ]]}
                        ]}
     document_perPage = [{'pages': '1:1000:2', 'style': {'margin': [60, 100, 60, 60]}},
@@ -234,19 +235,21 @@ def report_creator(report_captions_dict, pdf_name):
     first_page_dict['Examined by:'] = values['-examined_by-']
     first_page_dict['Date created:'] = values['-created_year-']
     first_page_dict['Creator:'] = values['-creator-']
-    first_page_dict['Dimensions:'] = df.loc[int(values['index_key']), 'Dimensions (cm)']
+    first_page_dict['Dimensions:'] = df.loc[int(values['index_key']), 'Dimensions']
     first_page_dict['Extent:'] = values['-extent-']
-    for key in first_page_dict.keys():
-        if first_page_dict[key] == "":
-            first_page_dict.pop(key)
+    key_list = list(first_page_dict.keys())
+    for item in key_list:
+        if first_page_dict[item] == "":
+            first_page_dict.pop(item)
 
     first_page = []
     # create header area with logo and title
     first_page.append({'table': [[{'image': header_logo, 'name':  'TSLAC Logo', 'style': 'logo'},
                                   {'table': [[{'.': 'CONSERVATION REPORT', 'style': 'title'}],
-                                             [{'.': f"{values['-official_consID-']}: {values['-title-']}", 'style': 'secondary_title', 'outline': {'level': 1, 'title': f"{values['-title-']}"}}]], 'style': 'table_style'}]], 'widths': [1,3], 'style': 'table_style'})
+                                             [{'.': f"{values['-official_consID-']}: {values['-title-'].upper()}", 'style': 'secondary_title', 'outline': {'level': 1, 'title': f"{values['-title-']}"}}]],
+                                   'style': 'table_style'}]], 'style': 'table_style', 'widths': [1,3]})
     # create table with basic info for the cover page, 4 columns wide and iterates over first page dict using counter to trigger when a new row is made
-    new_summary = {'table': [], 'widths': [2,3,2,3], 'style': 'table_style'}
+    new_summary = {'table': [], 'widths': [2,3,2,3], 'style': 'table_style_frontpage'}
     counter = 0
     table_list = []
     for key in first_page_dict.keys():
@@ -274,7 +277,7 @@ def report_creator(report_captions_dict, pdf_name):
         basic_images = {'table': [[{'.': 'Recto', 'style': 'report_right'},
                                    {'.': 'Verso', 'style': 'report_right'},],
                                   [{'image': recto, 'max_width': 300, 'style': 'report_center'},
-                                   {'image': verso, 'max_width': 300, 'style': 'report_center'},],]}
+                                   {'image': verso, 'max_width': 300, 'style': 'report_center'},],], 'style': 'table_style'}
         first_page.append(basic_images)
     else:
         SG.popup("Missing recto image, verso image, or both. No images added to the beginning of the report")
@@ -287,8 +290,8 @@ def report_creator(report_captions_dict, pdf_name):
     examination_dict['Examination date:'] = values['-examined_date-']
     examination_dict['Provenance:'] = values['-provenance-']
     examination_dict['Description:'] = values['-item_notes-']
-    examination_dict['Condition conerns:'] = values['-condition_plan_list-']
-    examination_dict['Treatment plan:'] = values['-treatment_plan_list-']
+    examination_dict['Condition concerns:'] = values['-condition_plan_list-'][:-1].replace("|", "\n")
+    examination_dict['Treatment plan:'] = values['-treatment_plan_list-'][:-1].replace("|", "\n")
     for key in examination_dict.keys():
         if examination_dict[key] == "":
             examination_dict.pop(key)
@@ -301,24 +304,64 @@ def report_creator(report_captions_dict, pdf_name):
     treatment_page = []
     treatment_page.append({'.': "TREATMENT", "style": "secondary_title", "outline": {"level": 1, "text": "Treatment"}})
     treatment_dict = treatment_text_parser(values['-treatment_text_block-'])
-
+    treatment_list = list(treatment_dict.keys())
+    for treatment in treatment_list:
+        treatment_table = {'table': [], 'widths': [1,3], 'style': 'table_style'}
+        treatment_by = treatment_dict[treatment][0]
+        treatment_date = treatment_dict[treatment][1]
+        treatment_text = treatment_dict[treatment][2]
+        treatment_table['table'].append([{'.': 'Treatment:', 'style': 'report_left'},
+                                         {'.': treatment, 'outline': {'level': 2, 'text': treatment}, 'style': 'report_right'}])
+        treatment_table['table'].append([{'.': 'Treated by:', 'style': 'report_left'},
+                                         {'.': treatment_by, 'style': 'report_right'}])
+        treatment_table['table'].append([{'.': 'Treatment date:', 'style': 'report_left'},
+                                         {'.': treatment_date, 'style': 'report_right'}])
+        treatment_table['table'].append([{'.': "Notes:", 'style': 'report_left'},
+                                         {'.': treatment_text, 'style': 'report_right'}])
+        treatment_page.append(treatment_table)
     images_page = []
-
-
     images_dict = report_captions_dict
-
+    images_filepath = values['-treatment_images-']
+    images_page.append({'.': 'IMAGES', 'style': 'secondary_title', 'outline': {'level': 1, 'text': 'Images'}})
+    images_table = {'table': [], 'widths': [1,1,1], 'style': 'table_style'}
+    counter = 0
+    table_list1 = []
+    table_list2 = []
+    for key in images_dict.keys():
+        if counter == 3:
+            counter = 0
+            images_table['table'].append(table_list1)
+            images_table['table'].append(table_list2)
+            table_list1 = []
+            table_list2 = []
+        titliest = images_dict[key]
+        titliest = titliest[:1].upper() + titliest[1:]
+        table_list1.append({'.': f"{titliest}", 'style': 'report_right'})
+        table_list2.append({'image': f"{images_filepath}/{key}", 'max-width': 200, 'style': 'report_center'})
+        counter += 1
+    while len(table_list2) < 3:
+        table_list1.append({'.': f"", 'style': 'report_right'})
+        table_list2.append({'.': f"", 'style': 'report_center'})
+    images_table['table'].append(table_list1)
+    images_table['table'].append(table_list2)
+    images_page.append(images_table)
+    # construct the actual document
     document = {}
     document['style'] = pdf_style
-    document['format'] = pdf_formats
+    document['formats'] = pdf_formats
     document['running_sections'] = {'footer': document_footer}
     document['sections'] = []
     document['sections'].append({'running_sections': ['footer'], 'content': first_page})
     document['sections'].append({'running_sections': ['footer'], 'content': examination_page})
     document['sections'].append({'running_sections': ['footer'], 'content': treatment_page})
     document['sections'].append({'running_sections': ['footer'], 'content': images_page})
-    with open(pdf_name, "wb") as pdf_file:
-        build_pdf(document, pdf_file)
-    pdf_file.close()
+    try:
+        with open(pdf_name, "wb") as pdf_file:
+            build_pdf(document, pdf_file)
+        pdf_file.close()
+        SG.popup("PDF report generated")
+    except:
+        SG.popup_error("PDF couldn't be generated is a copy of the file open?")
 
 
 def report_captioner(image_dict, filepath):
@@ -604,7 +647,7 @@ layout_exams = [
         SG.Input(default_text="", size=(6, 1), key="-number_of_items-"),
     ],
     [
-        SG.Text("format: "),
+        SG.Text("Format: "),
         SG.Combo(values=['format type goes here'], key="-format-"),
         SG.Push(),
         SG.Text("Substrate: "),
@@ -1012,7 +1055,7 @@ while True:
                 Request_Date = Request_Date.strftime('%Y-%m-%d')
             Request_Reason = new_df.loc[new_df['ConsID'] == ConsID, 'Request Reason'].values[0]
             Department = new_df.loc[new_df['ConsID'] == ConsID, 'Department'].values[0]
-            Reviewed_By = new_df.loc[new_df['ConsID'] == ConsID, 'Rev. by'].values[0]
+            Reviewed_By = new_df.loc[new_df['ConsID'] == ConsID, 'Reviewed By'].values[0]
             Review_Date = new_df.loc[new_df['ConsID'] == ConsID, 'Review Date'].values[0]
             if isinstance(Review_Date, datetime.datetime):
                 Review_Date = Review_Date.strftime('%Y-%m-%d')
@@ -1022,7 +1065,7 @@ while True:
             if isinstance(Exam_Date, datetime.datetime):
                 Exam_Date = Exam_Date.strftime('%Y-%m-%d')
             Priority = new_df.loc[new_df['ConsID'] == ConsID, 'High Priority?'].values[0]
-            Dimensions = new_df.loc[new_df['ConsID'] == ConsID, 'Dimensions (cm)'].values[0]
+            Dimensions = new_df.loc[new_df['ConsID'] == ConsID, 'Dimensions'].values[0]
             Extent = new_df.loc[new_df['ConsID'] == ConsID, 'Extent'].values[0]
             Item_Format = new_df.loc[new_df['ConsID'] == ConsID, 'Format'].values[0]
             Item_Substrate = new_df.loc[new_df['ConsID'] == ConsID, 'Substrate'].values[0]
@@ -1075,11 +1118,11 @@ while True:
             Dimensions_list = Dimensions.split("x")
             if len(Dimensions_list) > 0:
                 for item in Dimensions_list:
-                    if item.endswith("h"):
+                    if item.endswith("H"):
                         window['-dimensions_h-'].update(item[:-1])
-                    if item.endswith("w"):
+                    if item.endswith("W"):
                         window['-dimensions_w-'].update(item[:-1])
-                    if item.endswith("d"):
+                    if item.endswith("D"):
                         window['-dimensions_d-'].update(item[:-1])
             window['-number_of_items-'].update(Number_of_Items)
             window['-extent-'].update(Extent)
@@ -1089,6 +1132,9 @@ while True:
             window['-provenance-'].update(History)
             window['-item_notes-'].update(Notes)
             if len(Condition_Issues) > 0:
+                while Condition_Issues.endswith("|"):
+                    Condition_Issues = Condition_Issues[:-1]
+                Condition_Issues = Condition_Issues.split("|")
                 for item in Condition_Issues:
                     window['-applicable_conditions-'].update(f"{item}\n", append=True)
 
@@ -1151,13 +1197,13 @@ while True:
             df.loc[int(values['index_key']), "Request Date"] = values['-request_date-'][:10]
             df.loc[int(values['index_key']), "Request Reason"] = values['-request_reason-']
             df.loc[int(values['index_key']), "Department"] = values['-request_dept-']
-            df.loc[int(values['index_key']), "Rev. By"] = values['-reviewed_by-']
+            df.loc[int(values['index_key']), "Reviewed By"] = values['-reviewed_by-']
             df.loc[int(values['index_key']), "Review Date"] = values['-reviewed_date-'][:10]
             df.loc[int(values['index_key']), "Review Notes"] = values['-reviewed_notes-']
             df.loc[int(values['index_key']), "Exam By"] = values['-examined_by-']
             df.loc[int(values['index_key']), "Exam Date"] = values['-examined_date-'][:10]
             df.loc[int(values['index_key']), "High Priority?"] = values['-current_priority-']
-            df.loc[int(values['index_key']), "Dimensions (cm)"] = dimensions_text
+            df.loc[int(values['index_key']), "Dimensions"] = dimensions_text
             df.loc[int(values['index_key']), "Extent"] = values['-extent-']
             df.loc[int(values['index_key']), "Format"] = values['-format-']
             df.loc[int(values['index_key']), "Substrate"] = values['-substrate-']
@@ -1270,105 +1316,19 @@ while True:
             window['-actual_time-'].update(value='0')
         print(treatment_plan_dict)
     if event == "Create Report":
-        style = '''table, th, td{border: 2px solid black;border-collapse:collapse;padding-left:2px;padding-right:2px;}
-                    .top_images>img{max-width:450px}
-                    .top_image_section{display:inline-table;padding-left:25%;padding-right:25%;}
-                    .top_images{display:table-cell;padding:10px}
-                    .single_image{text-align:center;}
-                    table{width:100%;}
-                    .table-left{width: 30%}
-                    .table-right{width: 70%}
-                    '''
-        top_images = report_first_images(values['-report_images_folder-'])
-        my_images = report_captioner(report_captions_dict, values['-report_images_folder-'])
-        uuid = ""
-        if values['-unique_identifier-'] != "" or values['-unique_identifier_'] != "Non-conservation unique identifier":
-            uuid = f"<tr><td>Other Unique Identifier</td><td>{values['-unique_identifier-']}</td></tr>"
-
-        report = f'''<html>
-            <head>
-                <style type="text/css">
-                    {style}
-                </style>
-            <h1 style="text-align: center">Conservation Report and Treatment Plan</h1>
-            <h1 style="text-align: center">{values['-title-']}</h1>
-            <p style="text-align: center">Texas State Library and Archives Commission</p>
-            <p style="text-align: center">Archives and Information Services | Conservation</p>
-            {top_images}
-            <table>
-                <tr>
-                    <td class="table-left">Name of piece:</td>
-                    <td class="table-right">{values['-title-']}</td>
-                </tr>
-                <tr>
-                    <td>Unique identifier:</td>
-                    <td>{values['-official_consID-']}</td>
-                </tr>
-                {uuid}
-                <tr>
-                    <td>ArchivesSpace Link:</td>
-                    <td>{values['-Aspace-']}</td>
-                </tr>
-                <tr>
-                    <td>Date inspected:</td>
-                    <td>{values['-examined_date-']}</td>
-                </tr>
-                <tr>
-                    <td>Inspected by:</td>
-                    <td>{values['-examined_by-']}</td>
-                </tr>
-                <tr>
-                    <td>Date created:</td>
-                    <td>{values['-created_year-']}</td>
-                </tr>
-                <tr>
-                    <td>Creator:</td>
-                    <td>{values['-creator-']}</td>
-                </tr>
-                <tr>
-                    <td>Dimensions:</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Description:</td>
-                    <td>{values['-item_notes-']}</td>
-                </tr>
-                <tr>
-                    <td>Condition concerns:</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Treatment plan:</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Estimated time for treatment:</td>
-                    <td>{values['-estimated_treatment_hours-']}</td>
-                </tr>
-                <tr>
-                    <td>Treatment undertaken:</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Actual total time:</td>
-                    <td>{values['-total_actual_time-']}</td>
-                </tr>
-            </table>
-            {my_images}
-        </html>
-        '''
-        with open(f"{values['-official_consID-']}_report.html", 'w', encoding='utf-8') as f:
-            f.write(report)
-        f.close()
+        report_creator(report_captions_dict, f"{values['-official_consID-']}_report.pdf")
     if event == "Generate New Conservation Workbook":
+        with open("configfile.cfg", "w") as w:
+            w.write(config_template)
+        w.close()
+        my_config = configparser.RawConfigParser()
+        my_config.optionxform = lambda option: option
+        my_config.read("configfile.cfg")
         df_list = []
         for item in my_config['spreadsheet_columns'].items():
             df_list.append(item[0])
         df = pd.DataFrame(columns=df_list)
         writer = df.to_excel("New_ConservationReportingSS_WIP.xlsx", index=False, sheet_name="Conservation Reports")
-        with open("configfile.cfg", "w") as w:
-            w.write(config_template)
-        w.close()
         SG.popup("generated new conservation workbook and template config file")
     if event == "Close" or event == SG.WIN_CLOSED:
         break
