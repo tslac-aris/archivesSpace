@@ -195,6 +195,57 @@ report_captions_dict = {}
 treatment_plan_dict = {}
 treatment_plan_list = []
 
+def clear_fields():
+    window['-title-'].update("")
+    window['-consID2-'].update("")
+    window['-creator-'].update("")
+    window['-created_year-'].update("")
+    window['-unique_identifier-'].update("")
+    window['-Aspace-'].update("")
+    window['-requestor-'].update("")
+    window['-request_date-'].update("")
+    window['-request_reason-'].update("")
+    window['-reviewed_date-'].update("")
+    window['-reviewed_notes-'].update("")
+    window['-examined_by-'].update("")
+    window['-examined_date-'].update("")
+    window['-dimensions_h-'].update("")
+    window['-dimensions_w-'].update("")
+    window['-dimensions_d-'].update("")
+    window['-extent-'].update("")
+    window['-number_of_items-'].update("")
+    window['-provenance-'].update("")
+    window['-item_notes-'].update("")
+    window['-applicable_conditions-'].update("")
+    window['-condition_plan_list-'].update("")
+    window['-treatment_plan_list-'].update("")
+    window['-treatment_plan-'].update("")
+    window['-testing_results-'].update("")
+    window['-treatment_date-'].update("")
+    window['-treatment_notes-'].update("")
+    window['-actual_time-'].update("")
+    window['-treatment_text_block-'].update("")
+    window['-treated_by2-'].update("")
+    window['-total_actual_time-'].update("")
+    window['-summary-'].update("")
+    window['-report_images_folder-'].update("")
+    window['-treatment_images-'].update("")
+    window['index_key'].update("Data index")
+    my_config = configparser.RawConfigParser()
+    my_config.optionxform = lambda option: option
+    my_config.read(values['-config-'])
+    exam_treatment_drop_list = []
+    for item in my_config['treatmentDD'].items():
+        exam_treatment_drop_list.append(item[0])
+    exam_treatment_drop_list.sort()
+    window['-exam_treatment_plan_drop-'].update(values=exam_treatment_drop_list, size=(40,5))
+    condition_list = []
+    for item in my_config['conditionDD'].items():
+        condition_list.append(item[0])
+    condition_list.sort()
+    window['-condition_list-'].update(values=condition_list, size=(40,5))
+
+
 def report_creator(report_captions_dict, pdf_name):
     # the global variables for the report styling
     pdf_style = {'margin_bottom': 8, 'text_align': 'j'}
@@ -268,7 +319,7 @@ def report_creator(report_captions_dict, pdf_name):
     verso = ""
     for dirpath, dirnames, filenames in os.walk(values['-treatment_images-']):
         for filename in filenames:
-            filename_root = filename.split(".")[0]
+            filename_root = filename.split(".")[0].split(f"{values['-official_consID-']}_")[-1]
             if filename_root == "recto" or filename_root == "Recto":
                 recto = os.path.join(values['-treatment_images-'], filename)
             if filename_root == "verso" or filename_root == "Verso":
@@ -292,9 +343,12 @@ def report_creator(report_captions_dict, pdf_name):
     examination_dict['Description:'] = values['-item_notes-']
     examination_dict['Condition concerns:'] = values['-condition_plan_list-'][:-1].replace("|", "\n")
     examination_dict['Treatment plan:'] = values['-treatment_plan_list-'][:-1].replace("|", "\n")
+    pop_list = []
     for key in examination_dict.keys():
         if examination_dict[key] == "":
-            examination_dict.pop(key)
+            pop_list.append(key)
+    for item in pop_list:
+        examination_dict.pop(item)
     examination_page.append({'.': 'EXAMINATION REPORT', 'style': 'secondary_title', 'outline': {'level': 1, 'text': 'Examination report'}})
     exam_page_table = {'table': [], 'widths': [1,3], 'style': 'table_style'}
     for key in examination_dict.keys():
@@ -535,25 +589,25 @@ layout_reviews = [
     ],
     [
         SG.Text("Title: "),
-        SG.Input("Title goes here", key="-title-"),
+        SG.Input("", key="-title-"),
     ],
     [
         SG.Text("Conservation identifier: "),
-        SG.Text("Conservation identifier goes here", key="-consID2-")
+        SG.Text("", key="-consID2-")
     ],
     [
         SG.Text("Creator: "),
-        SG.Input(default_text="Enter creator", key="-creator-"),
+        SG.Input(default_text="", key="-creator-"),
         SG.Push(),
         SG.Text("Year of Creation: "),
-        SG.Input(default_text="Enter year of creation", key="-created_year-"),
+        SG.Input(default_text="", key="-created_year-"),
     ],
     [
         SG.Text("Unique identifier: "),
-        SG.Input(default_text="Non-conservation unique identifier", key="-unique_identifier-"),
+        SG.Input(default_text="", key="-unique_identifier-"),
         SG.Push(),
         SG.Text("Link to ArchivesSpace or catalog record"),
-        SG.Input(default_text="Enter link", key="-Aspace-"),
+        SG.Input(default_text="", key="-Aspace-"),
     ],
     [
         SG.HorizontalSeparator(),
@@ -565,10 +619,10 @@ layout_reviews = [
     ],
     [
         SG.Text("Requested by: "),
-        SG.Input(default_text="Enter requester", key="-requestor-"),
+        SG.Input(default_text="", key="-requestor-"),
         SG.Push(),
         SG.Text("Request date: "),
-        SG.Input(default_text="Enter date", key="-request_date-"),
+        SG.Input(default_text="", key="-request_date-"),
     ],
     [
         SG.Text("Department: "),
@@ -576,7 +630,7 @@ layout_reviews = [
     ],
     [
         SG.Text("Request reason: "),
-        SG.Multiline(default_text="Enter reason", key="-request_reason-", size=(50,3)),
+        SG.Multiline(default_text="", key="-request_reason-", size=(50,3)),
     ],
     [
         SG.HorizontalSeparator(),
@@ -597,7 +651,7 @@ layout_reviews = [
         SG.Text("Reviewer notes: "),
     ],
     [
-        SG.Multiline(default_text="Review notes", key="-reviewed_notes-", size=(100,10)),
+        SG.Multiline(default_text="", key="-reviewed_notes-", size=(100,10)),
     ]
 
 ]
@@ -605,10 +659,10 @@ layout_reviews = [
 layout_exams = [
     [
         SG.Text("Examined by: "),
-        SG.Input(default_text="Enter examined by", key="-examined_by-"),
+        SG.Input(default_text="", key="-examined_by-"),
         SG.Push(),
         SG.Text("Examination date: "),
-        SG.Input(default_text="yyyy-mm-dd", size=(12, 1), key="-examined_date-"),
+        SG.Input(default_text="", size=(12, 1), key="-examined_date-"),
     ],
     [
         SG.Text("Priority level: "),
@@ -641,7 +695,7 @@ layout_exams = [
     ],
     [
         SG.Text("Extent: "),
-        SG.Input(default_text="Enter extent", key="-extent-"),
+        SG.Input(default_text="", key="-extent-"),
         SG.Push(),
         SG.Text("Number of items: "),
         SG.Input(default_text="", size=(6, 1), key="-number_of_items-"),
@@ -659,12 +713,12 @@ layout_exams = [
     [
         SG.Text("Provenance: "),
         SG.Push(),
-        SG.Multiline(default_text="output message goes here", key="-provenance-", size=(100,5))
+        SG.Multiline(default_text="", key="-provenance-", size=(100,5))
     ],
     [
         SG.Text("Description/Condition Notes: "),
         SG.Push(),
-        SG.Multiline(default_text="Enter notes", key="-item_notes-", size=(100, 5)),
+        SG.Multiline(default_text="", key="-item_notes-", size=(100, 5)),
     ],
     [
         SG.HorizontalSeparator(),
@@ -714,7 +768,7 @@ layout_exams = [
 layout_treatments = [
     [
         SG.Push(),
-        SG.Text("Treatment plan"),
+        SG.Text("Treatment"),
         SG.Push(),
     ],
     [
@@ -725,7 +779,7 @@ layout_treatments = [
         SG.Combo(values=[], key="-treated_by-"),
         SG.Push(),
         SG.Text("Date: "),
-        SG.Input(default_text="Enter date as YYYY-MM-DD", key="-treatment_date-"),
+        SG.Input(default_text="", key="-treatment_date-"),
     ],
     [
         SG.Text("Notes: "),
@@ -755,10 +809,10 @@ layout_treatments = [
 layout_reports = [
     [
         SG.Text("Treated by: "),
-        SG.Input(default_text="Enter treated by", key="-treated_by2-"),
+        SG.Input(default_text="", key="-treated_by2-"),
         SG.Push(),
         SG.Text("Total actual time: "),
-        SG.Input(default_text="Enter total actual time", key="-total_actual_time-"),
+        SG.Input(default_text="", key="-total_actual_time-"),
     ],
     [
         SG.Push(),
@@ -767,7 +821,7 @@ layout_reports = [
     ],
     [
         SG.Push(),
-        SG.Multiline(default_text="enter summary narrative of conservation actions", key="-summary-", size=(100,5)),
+        SG.Multiline(default_text="", key="-summary-", size=(100,5)),
         SG.Push()
     ],
     [
@@ -785,7 +839,7 @@ layout_reports = [
     ],
     [
         SG.Push(),
-        SG.Input("Folder path to images", key="-report_images_folder-"),
+        SG.Input("", key="-report_images_folder-"),
         SG.FolderBrowse()
     ],
     [
@@ -820,7 +874,7 @@ layout_images = [
     [
         SG.Push(),
         SG.Text("path to images folder"),
-        SG.Input(default_text="Enter path to images folder", key="-treatment_images-"),
+        SG.Input(default_text="", key="-treatment_images-"),
         SG.FolderBrowse()
     ],
     [
@@ -862,8 +916,8 @@ layout = [
                 SG.Tab("Review", layout_reviews),
                 SG.Tab("Examination", layout_exams),
                 SG.Tab("Treatment", layout_treatments),
-                SG.Tab("Images", layout_images),
                 SG.Tab("Report", layout_reports),
+                SG.Tab("Images", layout_images),
             ]
         ], key="-tab_group-", expand_x=True, expand_y=True),
         SG.Push()
@@ -940,6 +994,7 @@ while True:
             for item in my_config['statusDD'].items():
                 status_list.append(item[0])
             status_list.sort()
+            clear_fields()
             window['-status_filter-'].update(values=status_list)
             window['-initial_status-'].update(values=status_list)
             window['-current_status-'].update(values=status_list)
@@ -993,6 +1048,7 @@ while True:
             window['-table_filter-'].update(values=new_df.values.tolist())
             window['-filtered_identifiers-'].update(values=new_df['ConsID'].tolist())
     if event == '-create_new_entry-':
+        clear_fields()
         if values['-fiscal_year-'] != "" and values['-fiscal_year-'] != "Enter fiscal year":
             if len(values['-fiscal_year-']) == 4:
                 newer_df = new_df['ConsID'].str.startswith(values['-fiscal_year-'])
@@ -1022,7 +1078,9 @@ while True:
                 window['-title_info-'].update(f"{title_for_window}")
                 An_Index = df.loc[df['ConsID'] == ConsID].index.tolist()[0]
                 window['index_key'].update(f"{An_Index}")
+                window['-title-'].update(Title)
     if event == "-filter-":
+        clear_fields()
         if values['-status_filter-'] != "":
             newer_df = new_df[new_df['Status'] == values['-status_filter-']]
             new_df = newer_df
@@ -1040,7 +1098,9 @@ while True:
         new_df = df
         window['-table_filter-'].update(values=new_df.values.tolist())
         window['-filtered_identifiers-'].update(values=new_df['ConsID'].tolist())
+        clear_fields()
     if event == '-load_record-':
+        clear_fields()
         if values['-filtered_identifiers-'] != "":
             ConsID = values['-filtered_identifiers-']
             Status = new_df.loc[new_df['ConsID'] == ConsID, 'Status'].values[0]
@@ -1263,9 +1323,6 @@ while True:
         print(Condition_Issues)
         window['-applicable_conditions-'].update(f"{values['-condition_list-']}\n", append=True)
         window['-condition_plan_list-'].update(f"{values['-condition_plan_list-']}{values['-condition_list-']}|")
-        for item in Condition_Issues:
-            if item in condition_list:
-                condition_list.remove(item)
         window['-condition_list-'].update(values=condition_list, size=(40,5))
     if event == "Add Treatment to List":
         Treatment_Plan = list(set(values['-treatment_plan_list-'].split("|")))
@@ -1274,9 +1331,6 @@ while True:
             Treatment_Plan.append(values['-exam_treatment_plan_drop-'])
             window['-treatment_plan-'].update(f"{values['-exam_treatment_plan_drop-']}\n", append=True)
             window['-treatment_plan_list-'].update(f"{values['-treatment_plan_list-']}{values['-exam_treatment_plan_drop-']}|")
-        for item in Treatment_Plan:
-            if item in exam_treatment_drop_list:
-                exam_treatment_drop_list.remove(item)
         window['-exam_treatment_plan_drop-'].update(values=exam_treatment_drop_list, size=(40,5))
         window['-treatment_drop-'].update(values=Treatment_Plan)
     if event == "Update Treatment Notes":
