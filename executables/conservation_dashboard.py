@@ -244,6 +244,7 @@ def clear_fields():
         condition_list.append(item[0])
     condition_list.sort()
     window['-condition_list-'].update(values=condition_list, size=(40,5))
+    window['-treatments_applied-'].update(values=[])
 
 
 def report_creator(report_captions_dict, pdf_name):
@@ -765,6 +766,58 @@ layout_exams = [
     ],
 ]
 
+treatment_left = [
+    [
+        SG.Text("Treatments being applied")
+    ],
+    [
+        SG.HorizontalSeparator(),
+    ],
+    [
+        SG.Text("Treatment by name")
+    ],
+    [
+        SG.Listbox(['1', '2', '3', '4', '5'], size=(40, 5), key="-treatments_applied-", enable_events=True),
+    ],
+    [
+        SG.HorizontalSeparator(),
+    ],
+    [
+        SG.Text("Treatment by date")
+    ],
+    [
+        SG.Listbox(['2026-09-29', '2026-01-01'], size=(12, 5), key="-treatments_applied_date-", enable_events=True),
+    ]
+]
+
+treatment_right = [
+    [
+        SG.Text("Treated by: "),
+        SG.Combo(values=[], key="-treated_by-"),
+        SG.Push(),
+        SG.Input(default_text="", key="-treatment_date-"),
+        SG.CalendarButton("Date", format="%Y-%m-%d", no_titlebar=False, key="-treatment_date_button-"),
+    ],
+    [
+        SG.Text("Notes: "),
+        SG.Push()
+    ],
+    [
+        SG.Multiline(key="-treatment_notes-", size=(100, 10)),
+        SG.Push(),
+    ],
+    [
+        SG.Push(),
+        SG.Text("Actual time: "),
+        SG.Input("", key="-actual_time-"),
+        SG.Text("hrs")
+    ],
+    [
+        SG.Push(),
+        SG.Button("Update Treatment Notes"),
+    ],
+]
+
 layout_treatments = [
     [
         SG.Push(),
@@ -775,25 +828,12 @@ layout_treatments = [
         SG.Text("Treatment: "),
         SG.Combo(values=[], key="-treatment_drop-", size=(40, 5), enable_events=True),
         SG.Push(),
-        SG.Text("Treated by: "),
-        SG.Combo(values=[], key="-treated_by-"),
+        SG.Button("Add treatment", size=(15, 1)),
         SG.Push(),
-        SG.Text("Date: "),
-        SG.Input(default_text="", key="-treatment_date-"),
+        SG.Button("Remove treatment", size=(15, 1)),
     ],
     [
-        SG.Text("Notes: "),
-        SG.Push()
-    ],
-    [
-        SG.Multiline(key="-treatment_notes-", size=(100,10)),
-        SG.Push(),
-        SG.Button("Update Treatment Notes"),
-    ],
-    [
-        SG.Text("Actual time: "),
-        SG.Input("", key="-actual_time-"),
-        SG.Text("hrs")
+        SG.Pane([SG.Column(treatment_left), SG.Column(treatment_right)], orientation="h"),
     ],
     [
         SG.Input("", key="-treatment_text_block-", disabled_readonly_background_color="PeachPuff2", readonly=True),
@@ -803,7 +843,7 @@ layout_treatments = [
         SG.Push(),
         SG.Text("DON'T FORGET TO TAKE PHOTOS!", font=("Courier", 14, "bold"), text_color="darkred"),
         SG.Push()
-    ]
+    ],
 ]
 
 layout_reports = [
@@ -932,7 +972,8 @@ layout = [
 window = SG.Window(title="Conservation management GUI",
                    layout=layout,
                    icon=my_icon64)
-
+#cal_button = window['-treatment_date_button-']
+#cal_button.Widget.configure()
 event, values = window.read()
 while True:
     event, values = window.read()
@@ -1029,6 +1070,7 @@ while True:
             for item in my_config['treatmentDD'].items():
                 exam_treatment_drop_list.append(item[0])
             exam_treatment_drop_list.sort()
+            window['-treatment_drop-'].update(values=exam_treatment_drop_list, size=(40, 5))
             window['-exam_treatment_plan_drop-'].update(values=exam_treatment_drop_list, size=(40,5))
             condition_list = []
             for item in my_config['conditionDD'].items():
@@ -1201,8 +1243,6 @@ while True:
             window['-estimated_treatment_hours-'].update(Estimated_Time)
             print(Treatment)
             Treatment_Plan_list = Treatment_Plan.split("|")
-            window['-treatment_drop-'].update(values=Treatment_Plan_list)
-            window['-treatment_drop-'].update(value=Treatment_Plan_list[0], size=(40,5))
             window['-treatment_plan-'].update("")
             if len(Treatment_Plan_list) > 0:
                 for item in Treatment_Plan_list:
@@ -1213,11 +1253,14 @@ while True:
                 window['-treatment_plan-'].update("\n", append=True)
             if len(Treatment_Notes) > 0:
                 treatment_plan_dict = treatment_text_parser(Treatment_Notes)
-                my_key = list(treatment_plan_dict.keys())[0]
-                window['-treated_by-'].update(value=treatment_plan_dict[my_key][0])
-                window['-treatment_date-'].update(value=treatment_plan_dict[my_key][1][:10])
-                window['-treatment_notes-'].update(value=treatment_plan_dict[my_key][2])
-                window['-actual_time-'].update(value=treatment_plan_dict[my_key][3])
+                window['-treatments_applied-'].update(values=list(treatment_plan_dict.keys()))
+                tx_date_list = set()
+                for key in treatment_plan_dict.keys():
+                    tx_date_list.add(treatment_plan_dict[key][1])
+                tx_date_list = list(tx_date_list)
+                tx_date_list.sort()
+                tx_date_list.append("All dates")
+                window['-treatments_applied_date-'].update(values=tx_date_list)
             else:
                 window['-treated_by-'].update(value=Treated_By)
                 window['-treatment_date-'].update(Date_Completed[:10])
@@ -1225,6 +1268,61 @@ while True:
             window['-treatment_text_block-'].update(Treatment_Notes)
             window['-treatment_images-'].update(Treatment_Images)
             window['-report_images_folder-'].update(Treatment_Images)
+    if event == "-treatments_applied-":
+        treatment_plan_dict = treatment_text_parser(values['-treatment_text_block-'])
+        my_key = values['-treatments_applied-'][0]
+        print(my_key)
+        print(treatment_plan_dict[my_key])
+        window['-treated_by-'].update(value=treatment_plan_dict[my_key][0])
+        window['-treatment_date-'].update(treatment_plan_dict[my_key][1])
+        window['-treatment_notes-'].update(treatment_plan_dict[my_key][2])
+        window['-actual_time-'].update(value=treatment_plan_dict[my_key][3])
+    if event == "-treatments_applied_date-":
+        my_key = values['-treatments_applied_date-'][0]
+        treatments_list = []
+        treatment_plan_dict = treatment_text_parser(values['-treatment_text_block-'])
+        for key in treatment_plan_dict.keys():
+            if treatment_plan_dict[key][1] == my_key:
+                treatments_list.append(key)
+        window['-treatments_applied-'].update(values=treatments_list)
+        if my_key == "All dates":
+            window['-treatments_applied-'].update(values=list(treatment_plan_dict.keys()))
+    if event == "Add treatment":
+        if values['-treatment_drop-'] != "":
+            text_block = values['-treatment_text_block-']
+            text_block = f"{text_block}||{values['-treatment_drop-']}|Someone|1835-09-01|Enter text here|0.1"
+            if text_block.startswith("||"):
+                text_block = text_block[2:]
+            window['-treatment_text_block-'].update(text_block)
+        treatment_plan_dict = treatment_text_parser(values['-treatment_text_block-'])
+        window['-treatments_applied-'].update(values=list(treatment_plan_dict.keys()))
+        tx_date_list = set()
+        for key in treatment_plan_dict.keys():
+            tx_date_list.add(treatment_plan_dict[key][1])
+        tx_date_list = list(tx_date_list)
+        tx_date_list.sort()
+        tx_date_list.append("All dates")
+        window['-treatments_applied_date-'].update(values=tx_date_list)
+    if event == "Remove treatment":
+        if values['-treatment_drop-'] != "":
+            treatment_plan_dict = treatment_text_parser(values['-treatment_text_block-'])
+            if values['-treatment_drop-'] in treatment_plan_dict.keys():
+                treatment_plan_dict.pop(values['-treatment_drop-'])
+                window['-treatments_applied-'].update(values=list(treatment_plan_dict.keys()))
+                tx_date_list = set()
+                for key in treatment_plan_dict.keys():
+                    tx_date_list.add(treatment_plan_dict[key][1])
+                tx_date_list = list(tx_date_list)
+                tx_date_list.sort()
+                tx_date_list.append("All dates")
+                window['-treatments_applied_date-'].update(values=tx_date_list)
+                temp_text = ""
+                for key in treatment_plan_dict.keys():
+                    temp_text = f'{temp_text}||{key}|{treatment_plan_dict[key][0]}|{treatment_plan_dict[key][1]}|{treatment_plan_dict[key][2]}|{treatment_plan_dict[key][3]}'
+                temp_text = temp_text[2:]
+                window['-treatment_text_block-'].update(temp_text)
+            else:
+                SG.popup_error("That treatment is not on list of treatments being applied")
     if event == "-save-":
         print(An_Index)
         if values['index_key'] == "":
