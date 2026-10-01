@@ -184,6 +184,7 @@ Treatment Images = directory path to the folder containing images documenting th
 '''
 
 my_icon64 = b'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'
+my_icon64 = b'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'
 
 SG.theme("Purple")
 
@@ -245,6 +246,8 @@ def clear_fields():
     condition_list.sort()
     window['-condition_list-'].update(values=condition_list, size=(40,5))
     window['-treatments_applied-'].update(values=[])
+    window['-header_info-'].update("Conservation ID: status")
+    window['-title_info-'].update("title")
 
 
 def report_creator(report_captions_dict, pdf_name):
@@ -318,21 +321,36 @@ def report_creator(report_captions_dict, pdf_name):
     first_page.append(new_summary)
     recto = ""
     verso = ""
-    for dirpath, dirnames, filenames in os.walk(values['-treatment_images-']):
+    images_path = ""
+    if values['-treatment_images-'] == "":
+        SG.popup_error("Did not find a directory entered into images tab\ntrying reports tab instead.\nremember to add to images tab and save for future reference")
+        if values['-report_images_folder-'] == "":
+            SG.popup_error("No directory listed in reports tab either, please add. exiting report generation")
+            return
+        else:
+            images_path = values['-report_images_folder-']
+    else:
+        images_path = values['-treatment_images-']
+    for key in report_captions_dict.keys():
+        if report_captions_dict[key] == "Before" or report_captions_dict[key] == "before":
+            recto = os.path.join(images_path, key)
+        if report_captions_dict[key] == "After" or report_captions_dict[key] == "after":
+            verso = os.path.join(images_path, key)
+    '''for dirpath, dirnames, filenames in os.walk(images_path):
         for filename in filenames:
             filename_root = filename.split(".")[0].split(f"{values['-official_consID-']}_")[-1]
             if filename_root == "recto" or filename_root == "Recto":
-                recto = os.path.join(values['-treatment_images-'], filename)
+                recto = os.path.join(images_path, filename)
             if filename_root == "verso" or filename_root == "Verso":
-                verso = os.path.join(values['-treatment_images-'], filename)
+                verso = os.path.join(images_path, filename)'''
     if recto != "" and verso != "":
-        basic_images = {'table': [[{'.': 'Recto', 'style': 'report_right'},
-                                   {'.': 'Verso', 'style': 'report_right'},],
+        basic_images = {'table': [[{'.': 'Before', 'style': 'report_right'},
+                                   {'.': 'After', 'style': 'report_right'},],
                                   [{'image': recto, 'max_width': 300, 'style': 'report_center'},
                                    {'image': verso, 'max_width': 300, 'style': 'report_center'},],], 'style': 'table_style'}
         first_page.append(basic_images)
     else:
-        SG.popup("Missing recto image, verso image, or both. No images added to the beginning of the report")
+        SG.popup("Missing before image, after image, or both. No images added to the beginning of the report")
     first_page.append({'.': "SUMMARY", 'style': 'secondary_title', 'outline': {'level': 1, 'text': 'Summary'}})
     first_page.append({'.': values['-summary-']})
     # start examination page
@@ -376,7 +394,7 @@ def report_creator(report_captions_dict, pdf_name):
         treatment_page.append(treatment_table)
     images_page = []
     images_dict = report_captions_dict
-    images_filepath = values['-treatment_images-']
+    images_filepath = images_path
     images_page.append({'.': 'IMAGES', 'style': 'secondary_title', 'outline': {'level': 1, 'text': 'Images'}})
     images_table = {'table': [], 'widths': [1,1,1], 'style': 'table_style'}
     counter = 0
@@ -410,13 +428,15 @@ def report_creator(report_captions_dict, pdf_name):
     document['sections'].append({'running_sections': ['footer'], 'content': examination_page})
     document['sections'].append({'running_sections': ['footer'], 'content': treatment_page})
     document['sections'].append({'running_sections': ['footer'], 'content': images_page})
+
+    SG.popup("PDF report generated")
     try:
         with open(pdf_name, "wb") as pdf_file:
             build_pdf(document, pdf_file)
         pdf_file.close()
-        SG.popup("PDF report generated")
     except:
         SG.popup_error("PDF couldn't be generated is a copy of the file open?")
+
 
 
 def report_captioner(image_dict, filepath):
@@ -1036,6 +1056,12 @@ while True:
                 status_list.append(item[0])
             status_list.sort()
             clear_fields()
+            report_captions_dict = ""
+            report_captions_dict = {}
+            window['-image_caption-'].update("")
+            window['-report_images2-'].update(values=[])
+            window['-report_images-'].update(values=[])
+            window['-image_list-'].update(values=[])
             window['-status_filter-'].update(values=status_list)
             window['-initial_status-'].update(values=status_list)
             window['-current_status-'].update(values=status_list)
@@ -1091,6 +1117,12 @@ while True:
             window['-filtered_identifiers-'].update(values=new_df['ConsID'].tolist())
     if event == '-create_new_entry-':
         clear_fields()
+        report_captions_dict = ""
+        report_captions_dict = {}
+        window['-image_caption-'].update("")
+        window['-report_images2-'].update(values=[])
+        window['-report_images-'].update(values=[])
+        window['-image_list-'].update(values=[])
         if values['-fiscal_year-'] != "" and values['-fiscal_year-'] != "Enter fiscal year":
             if len(values['-fiscal_year-']) == 4:
                 newer_df = new_df['ConsID'].str.startswith(values['-fiscal_year-'])
@@ -1141,8 +1173,20 @@ while True:
         window['-table_filter-'].update(values=new_df.values.tolist())
         window['-filtered_identifiers-'].update(values=new_df['ConsID'].tolist())
         clear_fields()
+        report_captions_dict = ""
+        report_captions_dict = {}
+        window['-image_caption-'].update("")
+        window['-report_images2-'].update(values=[])
+        window['-report_images-'].update(values=[])
+        window['-image_list-'].update(values=[])
     if event == '-load_record-':
         clear_fields()
+        report_captions_dict = ""
+        report_captions_dict = {}
+        window['-image_caption-'].update("")
+        window['-report_images2-'].update(values=[])
+        window['-report_images-'].update(values=[])
+        window['-image_list-'].update(values=[])
         if values['-filtered_identifiers-'] != "":
             ConsID = values['-filtered_identifiers-']
             Status = new_df.loc[new_df['ConsID'] == ConsID, 'Status'].values[0]
@@ -1383,23 +1427,29 @@ while True:
             writer = df.to_excel(values['-spreadsheet-'], sheet_name="Conservation Reports", index=False)
             print("data saved")
     if event == "Load image list":
-        files_list = os.listdir(values['-treatment_images-'])
-        image_list = [f for f in files_list if os.path.isfile(os.path.join(values['-treatment_images-'], f)) and f.lower().endswith(supported_images)]
-        if len(image_list) == 0:
-            SG.popup_error("No images found")
-        else:
-            window['-image_list-'].update(values=image_list)
+        try:
+            files_list = os.listdir(values['-treatment_images-'])
+            image_list = [f for f in files_list if os.path.isfile(os.path.join(values['-treatment_images-'], f)) and f.lower().endswith(supported_images)]
+            if len(image_list) == 0:
+                SG.popup_error("No images found")
+            else:
+                window['-image_list-'].update(values=image_list)
+        except:
+            SG.popup_error("Unable to access images. Is the directory path correct?")
     if event == "-image_list-":
         filename = os.path.join(values['-treatment_images-'], values['-image_list-'][0])
         window['-current_image-'].update(data=convert_image(filename, first=True))
         window['-image_filename-'].update(filename.split("\\")[-1])
     if event == "Load report images":
-        report_files_list = os.listdir(values['-report_images_folder-'])
-        report_images = [f for f in report_files_list if os.path.isfile(os.path.join(values['-report_images_folder-'], f)) and f.lower().endswith(supported_images)]
-        if len(report_images) == 0:
-            SG.popup_error("No images found")
-        else:
-            window['-report_images-'].update(values=report_images)
+        try:
+            report_files_list = os.listdir(values['-report_images_folder-'])
+            report_images = [f for f in report_files_list if os.path.isfile(os.path.join(values['-report_images_folder-'], f)) and f.lower().endswith(supported_images)]
+            if len(report_images) == 0:
+                SG.popup_error("No images found")
+            else:
+                window['-report_images-'].update(values=report_images)
+        except:
+            SG.popup_error("Unable to access images. Is the directory path correct?")
     if event == "-report_images-":
         filename2 = os.path.join(values['-report_images_folder-'], values['-report_images-'][0])
         window['-current_report_image-'].update(data=convert_image(filename2, first=True))
